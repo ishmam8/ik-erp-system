@@ -11,7 +11,7 @@ def _generate_serial_number():
     return hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
 
 @transaction.atomic
-def create_vault(initial_gold, serial_number=None):
+def create_vault(initial_gold=0.00, serial_number=None):
     '''Creates a new vault with an initial gold amount.'''
     if serial_number is None:
         serial_number = _generate_serial_number()
@@ -31,7 +31,7 @@ def create_vault(initial_gold, serial_number=None):
         raise Exception(f'Failed to create vault: {e}')
 
 @transaction.atomic
-def add_vgt_to_vault(vault, amount, description=""):
+def add_vgt_to_vault(vault, amount=0.00, description=""):
     '''Adds gold to an existing vault.'''
 
     vault.vgt_balance += amount
@@ -44,7 +44,7 @@ def add_vgt_to_vault(vault, amount, description=""):
     )
 
 @transaction.atomic
-def remove_vgt_from_vault(vault, amount, description=""):
+def remove_vgt_from_vault(vault, amount=0.00, description=""):
     '''Removes gold from an existing vault.'''
 
     if vault.vgt_balance < amount:
@@ -66,7 +66,7 @@ def get_vault_balance(vault):
     return balance
 
 @transaction.atomic
-def user_buy_vgt(vault, user, amount):
+def user_buy_vgt(vault, user, amount=0.00):
     #TDOO: Is this amount in gold or fiat money?
     # If it's in fiat money, are we converting it to gold?
     # require another function to convert fiat to gold
@@ -93,7 +93,7 @@ def user_buy_vgt(vault, user, amount):
         return False
 
 @transaction.atomic
-def user_send_vgt(user, target_email, amount):
+def user_send_vgt(user, target_email, amount=0.00):
     # the target user might not have yet created a profile
 
     user_profile = UserProfile.objects.get(user=user)
@@ -142,7 +142,7 @@ def user_send_vgt(user, target_email, amount):
 
         return True
 
-def user_redeem_vgt(user, amount):
+def user_redeem_vgt(user, amount=0.00):
     '''Allows a user to redeem VGT.'''
     user_profile = UserProfile.objects.get(user=user)
 

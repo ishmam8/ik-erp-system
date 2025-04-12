@@ -1,11 +1,12 @@
+import django.utils.timezone as timezone
 from django.db import models
 from django.contrib.auth.models import User
 
 
 class Vault(models.Model):
-    vgt_balance = models.DecimalField(max_digits=10, decimal_places=2)
+    vgt_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     serial_number = models.CharField(max_length=255, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(
     max_length=50, 
     choices=[('READY', 'Ready'), ('DEPLETED', 'Depleted')], 
@@ -25,7 +26,7 @@ class Transaction(models.Model):
         ('BUY', 'Buy'),
         ('GIFT_SENT', 'Gift Sent'),
         ('GIFT_RECEIVED', 'Gift Received'),
-        ('REDEEM', 'Redeem')
+        ('REDEEM', 'Redeem'),
         ('VAULT_DEPOSIT', 'Vault Deposit'),
         ('VAULT_WITHDRAWAL', 'Vault Withdrawal'),
     )
@@ -46,9 +47,9 @@ class Transaction(models.Model):
         related_name='actions_received'
     )
 
-    vgt_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    vgt_amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     transaction_type = models.CharField(max_length=50, choices=TRANSACTION_TYPES)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     vault = models.ForeignKey(Vault, related_name='transactions', on_delete=models.SET_NULL, null=True, blank=True)
     notes = models.TextField(blank=True) 
 
@@ -56,7 +57,7 @@ class Transaction(models.Model):
 class PendingTransaction(models.Model):
     actor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_pending_transactions')
     target_email = models.EmailField()
-    vgt_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
+    vgt_amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
+    created_at = models.DateTimeField(default=timezone.now)
     is_claimed = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
