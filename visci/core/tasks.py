@@ -7,5 +7,10 @@ def check_expiry():
        Notifies the admin via email
        Deletes the expired transaction
     '''
+    pass
 
+def convert_fiat_to_vgt():
+    pass
+
+def convert_vgt_to_fiat():
     pass

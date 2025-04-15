@@ -1,0 +1,5 @@
+# Ignore Python cache files
+*.pyc
+__pycache__/
+../virtualenv/
+.vscode/

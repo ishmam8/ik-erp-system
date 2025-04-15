@@ -62,7 +62,7 @@ def remove_vgt_from_vault(vault, amount=0.00, description=""):
 @transaction.atomic
 def get_vault_balance(vault):
     '''Returns the current balance of the vault.'''
-    balance = Transaction.objects.filter(vault=vault).aggregate(models.Sum('amount'))['amount__sum'] or 0
+    balance = Transaction.objects.filter(vault=vault).aggregate(models.Sum('vgt_amount'))['vgt_amount__sum'] or 0
     return balance
 
 @transaction.atomic
