@@ -38,9 +38,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'corsheaders',
+    'rest_framework_simplejwt.token_blacklist',
+
+    
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,6 +56,20 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# Simple JWT Settings (short lifetimes for testing)
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Short for testing
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'BLACKLIST_AFTER_ROTATION': True,
+}
 
 ROOT_URLCONF = 'visci.urls'
 
@@ -85,6 +106,7 @@ DATABASES = {
     }
 }
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
