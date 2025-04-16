@@ -97,7 +97,7 @@ def user_send_vgt(user, target_email, amount=0.00):
     # the target user might not have yet created a profile
 
     user_profile = UserProfile.objects.get(user=user)
-    target_profile = UserProfile.objects.get(user=target_user)
+    # target_profile = UserProfile.objects.get(user=target_user)
 
     if user_profile.vgt_balance <= amount:
         raise Exception("Insufficient balance to send VGT.")

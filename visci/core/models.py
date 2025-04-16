@@ -26,6 +26,7 @@ class Transaction(models.Model):
         ('BUY', 'Buy'),
         ('GIFT_SENT', 'Gift Sent'),
         ('GIFT_RECEIVED', 'Gift Received'),
+        ('GIFT_SEND_BACK', 'Gift Send Back'),
         ('REDEEM', 'Redeem'),
         ('VAULT_DEPOSIT', 'Vault Deposit'),
         ('VAULT_WITHDRAWAL', 'Vault Withdrawal'),
