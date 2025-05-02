@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'api',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -62,6 +63,10 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React development server
+]
 
 # Simple JWT Settings (short lifetimes for testing)
 from datetime import timedelta
