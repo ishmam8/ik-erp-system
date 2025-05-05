@@ -4,7 +4,8 @@ from django.utils.timezone import now
 from django.db import transaction
 from .models import PendingTransaction, Transaction
 
-
+# TODO: Backlog
+# Check for expired transactions when sent to the target user
 def check_expiry():
     """
     Checks for expired transactions from the PendingTransaction table.
@@ -39,6 +40,7 @@ def check_expiry():
                 # Delete the expired transaction
                 pending_transaction.delete()
 
+#fetch the gold price in CAD
 def fetch_gold_to_cad():
     METALPRICE_API_KEY = '3a61a079fb42b5c3d4fa5a7eb2cf3475'  # Keep this secret!
     API_URL = 'https://api.metalpriceapi.com/v1/latest'
@@ -65,5 +67,11 @@ def fetch_gold_to_cad():
         print(f"Error in fetch_gold_to_cad: {e}")
         return None
 
-def convert_vgt_to_fiat():
+def convert_vgt_to_fiat(vgt):
     pass
+
+def convert_fiat_to_vgt(fiat):
+    pass
+
+
+

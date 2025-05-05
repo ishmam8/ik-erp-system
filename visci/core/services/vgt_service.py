@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from core.models import PendingTransaction, UserProfile, Vault, Transaction
 
 
+"""THIS FILE HANDLES THE VAULT AND VGT TRANSACTIONS"""
+
 def _generate_serial_number():
     #TODO: determine how to use the serial number
     '''Generates a unique serial number for the vault.'''

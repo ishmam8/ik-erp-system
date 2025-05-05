@@ -1,6 +1,6 @@
 # Ignore Python cache files
 *.pyc
-__pycache__/
+*__pycache__/
 /virtualenv/
 .vscode/
 /visci/client

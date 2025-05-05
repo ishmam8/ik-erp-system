@@ -2,6 +2,36 @@ import django.utils.timezone as timezone
 from django.db import models
 from django.contrib.auth.models import User
 
+class Currency(models.Model):
+    CURRENCY_CHOICES = (
+        ('USD', 'USD'),
+        ('UAE', 'UAE'),
+        ('CAD', 'CAD'),
+    )
+    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, unique=True, default='USD')
+
+
+class GlobalSettings(models.Model):
+    selected_currency = models.OneToOneField(
+        Currency,
+        on_delete=models.CASCADE,
+        related_name="global_setting",
+        null=True,
+        blank=True,
+        help_text="The currency used throughout the application."
+    )
+    
+    def __str__(self):
+        return f"Global Currency: {self.selected_currency.currency if self.selected_currency else 'Not Set'}"
+
+    @staticmethod
+    def get_instance():
+        # Get the singleton instance or create a default one
+        instance, created = GlobalSettings.objects.get_or_create(
+            defaults={"selected_currency": Currency.objects.get_or_create(currency="USD")[0]}
+        )
+        return instance
+
 
 class Vault(models.Model):
     vgt_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -25,6 +55,14 @@ class UserProfile(models.Model):
         help_text="Stop limit as a percentage (e.g., 50.00 for 50%)"
     )
     is_active = models.BooleanField(default=True)
+    preferred_currency = models.ForeignKey(
+        'Currency',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='user_profiles',
+        help_text="The user's preferred currency."
+    )
 
 # currency = USD
 # gold api ~ 1 ounce
@@ -54,16 +92,6 @@ class GoldData(models.Model):
 #         gold_data = GoldData.objects.all()
 #         serializer = GoldDataSerializer(gold_data, many=True)
 #         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class Currency(models.Model):
-    CURRENCY_CHOICES = (
-        ('USD', 'USD'),
-        ('UAE', 'UAE'),
-        ('CAD', 'CAD'),
-    )
-    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, unique=True)
-    created_at = models.DateTimeField(default=timezone.now)
 
 
 class Transaction(models.Model):
