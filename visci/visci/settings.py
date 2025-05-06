@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
+    "channels",
 
     
 ]
@@ -96,6 +97,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'visci.wsgi.application'
+ASGI_APPLICATION = "visci.asgi.application"
+
+# Required for WebSocket layer (development only for now)
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database

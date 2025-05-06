@@ -2,6 +2,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from core.utils import get_active_currency, switch_currency
+from django.http import JsonResponse
+from core.services.user_service import get_fiat_balance
 
 @api_view(['GET'])
 def get_currency_view(request):
@@ -28,3 +30,12 @@ def switch_currency_view(request):
         return Response({"message": result}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@api_view(['GET'])
+def get_user_fiat_balance_view(request, user_id):
+    """
+    API endpoint to get the fiat balance of a user.
+    """
+    result = get_fiat_balance(user_id)
+    return Response(result, status=status.HTTP_200_OK)
