@@ -3,4 +3,42 @@
 *__pycache__/
 /virtualenv/
 .vscode/
-/visci/client
+/visci_project/client
+/contracts/node_modules/
+node_modules/
+.env/
+base-contract/artifacts/
+base-contract/cache/
+
+
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Node/React (for visci/client/)
+node_modules/
+dist/
+build/
+.next/
+.cache/
+
+# Hardhat (for base-contract/)
+artifacts/
+cache/
+typechain/
+ignition/
+coverage/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# System
+.DS_Store
+.idea/
+.vscode/
