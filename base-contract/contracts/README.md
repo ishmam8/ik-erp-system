@@ -16,7 +16,6 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
 https://hardhat.org/tutorial/testing-contracts#writing-tests
 
 
-
 ## -------- ##
 
 # 0.1 ETH Base Sepolia Transfer 
@@ -40,3 +39,4 @@ Potential Vulnerabilities Identified
 - No Total Supply Cap: While there's a per-user mint limit, there's no global supply cap which could lead to infinite inflation if the minter is compromised.
 - No Burning Restrictions: Anyone can burn their tokens, which could be used to manipulate supply metrics.
 - No Minter Revocation Delay: The minter can be changed immediately, which could be risky if the owner key is compromised.
+- Transfer of token from user address has no been tackled 

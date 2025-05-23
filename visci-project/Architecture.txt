@@ -1,0 +1,55 @@
+┌─────────────────────────────────────────────────┐
+│                   Frontend                      │
+│  (React/Vue/Next.js/Django Templates)          │
+└───────────────┬───────────────────┬─────────────┘
+                │                   │
+                │ API Calls         │ Event Listening
+                ▼                   ▼
+┌─────────────────────────────────────────────────┐
+│                  Django Backend                 │
+│  ┌─────────────┐    ┌─────────────┐            │
+│  │   API Views  │ ←→ │  Services   │            │
+│  └─────────────┘    └─────────────┘            │
+│         │               │  ▲                   │
+│         ▼               ▼  │                   │
+│  ┌─────────────┐    ┌─────────────┐    ┌───────┴──────┐
+│  │  Serializers│    │  Web3.py    │    │  Celery      │
+│  └─────────────┘    │  (Ethereum) │    │  (Async)     │
+│                     └─────────────┘    └───────┬──────┘
+└─────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────┐
+│               Ethereum Sepolia                  │
+│  ┌───────────────────────────────────────────┐  │
+│  │           GGTToken Contract               │  │
+│  │  (Mint/Burn/Transfer functionality)      │  │
+│  └───────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────┘
+
+
+
+## API Endpoints You'll Need
+
+For a complete GGT Token API, you'll want these core endpoints:
+
+Token Operations
+POST /mint - Mint new tokens (minter role required)
+POST /burn - Burn tokens (token holder)
+GET /balance/:address - Check token balance
+GET /allowance/:owner/:spender - Check allowance
+
+Administrative
+POST /change-minter - Change minter address (owner only)
+GET /total-supply - Get total tokens in circulation
+
+Meta
+GET /token-info - Get name/symbol/decimals
+GET /roles - Check current roles (owner/minter)
+
+Endpoint	    Functionality	        Contract Function	
+/api/mint	    Mint GGT to user	    mint(address, amt)	
+/api/burn	    Burn GGT from caller	burn(amount)	
+/api/balance	Get user balance	    balanceOf(address)	
+/api/transfer	Send GGT to another	    transfer(to, amt)	
+/api/supply	    Total GGT supply	    totalSupply()	
