@@ -27,6 +27,8 @@ contract GGTToken is Initializable, ERC20Upgradeable, OwnableUpgradeable, UUPSUp
 
     // @notice GGT is a 1:1 token for grams of gold, and not divisible
     function decimals() public pure override returns (uint8) {
+        // TODO:
+        // should we keep this as integers?
         return 0;
     }
 

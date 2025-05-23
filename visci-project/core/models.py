@@ -2,37 +2,43 @@ import django.utils.timezone as timezone
 from django.db import models
 from django.contrib.auth.models import User
 
-class Currency(models.Model):
-    CURRENCY_CHOICES = (
-        ('USD', 'USD'),
-        ('UAE', 'UAE'),
-        ('CAD', 'CAD'),
-    )
-    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, unique=True, default='USD')
+CURRENCY_CHOICES = (
+    ('USD', 'USD'),
+    ('UAE', 'UAE'),
+    ('CAD', 'CAD'),
+)
 
 
+'''
+Implementing a singleton pattern for GlobalSettings
+This ensures that there is only one instance of GlobalSettings in the database
+and it can be accessed globally.
+'''
 class GlobalSettings(models.Model):
-    selected_currency = models.OneToOneField(
-        Currency,
-        on_delete=models.CASCADE,
-        related_name="global_setting",
-        null=True,
-        blank=True,
+    selected_currency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        default='USD',
         help_text="The currency used throughout the application."
     )
     
     def __str__(self):
-        return f"Global Currency: {self.selected_currency.currency if self.selected_currency else 'Not Set'}"
+        return f"Global Currency: {self.selected_currency if self.selected_currency else 'Not Set'}"
 
     @staticmethod
     def get_instance():
         # Get the singleton instance or create a default one
         instance, created = GlobalSettings.objects.get_or_create(
-            defaults={"selected_currency": Currency.objects.get_or_create(currency="USD")[0]}
+            defaults={"selected_currency": 'USD'}
         )
         return instance
 
 
+'''
+The Vault model represents a vault that hold the 22K gold.
+It is created to track the amount of gold (g) bought in Dubai.
+1 gram of gold represents 1 VGToken
+'''
 class Vault(models.Model):
     vgt_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     serial_number = models.CharField(max_length=255, unique=True)
@@ -44,65 +50,45 @@ class Vault(models.Model):
     )
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    fiat_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    vgt_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    stop_limit = models.DecimalField(
-        max_digits=5,  # Allows values up to 999.99%
-        decimal_places=2,  # Two decimal places for precision
-        default=0.00,  # Default percentage value
-        help_text="Stop limit as a percentage (e.g., 50.00 for 50%)"
-    )
-    is_active = models.BooleanField(default=True)
-    preferred_currency = models.ForeignKey(
-        'Currency',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='user_profiles',
-        help_text="The user's preferred currency."
-    )
-
-# currency = USD
-# gold api ~ 1 ounce
-# 1 vgt token ~ 1 gram of gold
-# 1 ounce of gold = 28.3495 grams
+'''
+The GoldData model represents the 22K gold price data for each day.
+'''
 class GoldData(models.Model):
     serial_number = models.CharField(max_length=255, unique=True)
     gold_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     purity = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
-#     def post(self, request):
-#         # Assuming you have a serializer for GoldData
-#         serializer = GoldDataSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#     def delete(self, request, pk):
-#         try:
-#             gold_data = GoldData.objects.get(pk=pk)
-#             gold_data.delete()
-#             return Response(status=status.HTTP_204_NO_CONTENT)
-#         except GoldData.DoesNotExist:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-#     def get(self, request):
-#         gold_data = GoldData.objects.all()
-#         serializer = GoldDataSerializer(gold_data, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+'''
+UserProfile model extends the default User model to include additional fields.
+Given the custodian model, vgt_balance represents the amount of VGToken user owns.
+The fiat_balance represents the amount of fiat currency in the system.
+TODO: Need to store USDC or USDT in the database.
+'''
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    #TODO:
+    # How will we store the fiat balance in pratice?
+    fiat_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    vgt_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    is_active = models.BooleanField(default=True)
+    preferred_currency = models.CharField(
+        max_length=3,
+        choices=CURRENCY_CHOICES,
+        null=True,
+        blank=True,
+        help_text="The user's preferred currency."
+    )
 
 
 class Transaction(models.Model):
     TRANSACTION_TYPES = (
         ('MINT', 'Mint'),
-        ('BUY', 'Buy'),
-        ('SELL', 'Sell'),
-        ('GIFT_SENT', 'Gift Sent'),
-        ('GIFT_RECEIVED', 'Gift Received'),
-        ('GIFT_SEND_BACK', 'Gift Send Back'),
-        ('REDEEM', 'Redeem'),
+        ('REDEEM', 'Redemption'),
+        ('BUY', 'Purchase Fiat'),
+        ('SELL', 'Sell Fiat'),
+        ('TRANSFER', 'Transfer Token'),
         ('VAULT_DEPOSIT', 'Vault Deposit'),
         ('VAULT_WITHDRAWAL', 'Vault Withdrawal'),
     )
@@ -123,14 +109,19 @@ class Transaction(models.Model):
         related_name='actions_received'
     )
 
-    vgt_amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
-    action = models.CharField(max_length=50, choices=TRANSACTION_TYPES, default='MINT')
+    #VGToken was implemented as non decimal token
+    #TODO:
     created_at = models.DateTimeField(default=timezone.now)
+    vgt_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    fiat_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    action = models.CharField(max_length=50, choices=TRANSACTION_TYPES, default='MINT')
     vault = models.ForeignKey(Vault, related_name='transactions', on_delete=models.SET_NULL, null=True, blank=True)
     notes = models.TextField(blank=True) 
 
 
 #Transaction to track sending and receiving
+'''More like a marketplace system where users can send VGToken to each other.
+'''
 class PendingTransaction(models.Model):
     actor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_pending_transactions')
     target_email = models.EmailField()

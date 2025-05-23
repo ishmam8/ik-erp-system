@@ -32,11 +32,13 @@ https://base-sepolia.blockscout.com/address/0x94b994DF68f01F5594822eCc3D872e1446
 
 
 ## --------- ##
-TODO tests:
+TODO:
 Potential Vulnerabilities Identified
 
 - Minting Cap Bypass: The current implementation tracks minted amounts per address, but doesn't prevent users from receiving additional tokens via transfers after reaching their cap.
 - No Total Supply Cap: While there's a per-user mint limit, there's no global supply cap which could lead to infinite inflation if the minter is compromised.
 - No Burning Restrictions: Anyone can burn their tokens, which could be used to manipulate supply metrics.
 - No Minter Revocation Delay: The minter can be changed immediately, which could be risky if the owner key is compromised.
-- Transfer of token from user address has no been tackled 
+- Transfer of token from user address has not been tackled 
+- Production: How are we purchasing the tokens in practice? Fiat -> USDC ? | ETH ? -> GGT
+will the users be able to see the backend stablecoin exchange transfer?

@@ -124,6 +124,7 @@ class GGTContract:
     #     return tx_hash.hex()
 
     '''Currently not implemented for custodian model.'''
+    '''ADMIN ONLY'''
     #TODO:
     # def balance_of(self, address=None):
     #     """
@@ -133,6 +134,7 @@ class GGTContract:
     #     return self.contract.functions.balanceOf(addr).call()
 
     '''Currently not implemented for custodian model.'''
+    '''ADMIN ONLY'''
     #TODO:
     # def total_supply(self):
     #     """
