@@ -1,7 +1,7 @@
 from datetime import timedelta
 from django.test import TestCase
 from django.utils.timezone import now
-from django.contrib.auth.models import User
+from django.conf import settings
 from visci.core.models import PendingTransaction, UserProfile, Transaction
 from visci.core.tasks import check_expiry
 
@@ -11,7 +11,7 @@ from visci.core.tasks import check_expiry
 class CheckExpiryTestCase(TestCase):
     def setUp(self):
         # Create a user and their profile
-        self.user = User.objects.create_user(username="testuser", email="testuser@example.com", password="password")
+        self.user = settings.AUTH_USER_MODEL.objects.create_user(username="testuser", email="testuser@example.com", password="password")
         self.user_profile = UserProfile.objects.create(user=self.user, vgt_balance=100.00)
 
         # Create a pending transaction that is expired

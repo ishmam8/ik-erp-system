@@ -1,7 +1,7 @@
 import hashlib
 import uuid
 from django.db import transaction, models
-from django.contrib.auth.models import User
+from django.conf import settings
 from core.models import PendingTransaction, UserProfile, Vault, Transaction
 
 
@@ -106,7 +106,7 @@ def user_send_vgt(user, target_email, amount=0.00):
     
     try:
         #check if the target user has an account
-        target_user = User.objects.get(email=target_email)
+        target_user = settings.AUTH_USER_MODEL.objects.get(email=target_email)
         target_profile = UserProfile.objects.get(user=target_user)
 
         if not target_profile.is_active:
@@ -127,7 +127,7 @@ def user_send_vgt(user, target_email, amount=0.00):
         )
         return True
     
-    except User.DoesNotExist:
+    except settings.AUTH_USER_MODEL.DoesNotExist:
         # If the target user does not exist, create a pending transaction
         PendingTransaction.objects.create(
             actor=user,
