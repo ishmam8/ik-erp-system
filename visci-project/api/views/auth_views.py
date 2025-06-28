@@ -11,6 +11,10 @@ from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from ..models import CustomUser
 from ..serializers import RegisterSerializer, LoginSerializer, GoogleLoginSerializer, LogoutSerializer
+from django.core.mail import send_mail
+from django.conf import settings
+import secrets
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -24,25 +28,93 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+            
+            # Check if user exists but is not verified
+            existing_user = CustomUser.objects.filter(email=email).first()
+            if existing_user and not existing_user.is_email_verified:
+                # Update the existing unverified user
+                existing_user.set_password(password)
+                existing_user.otp = secrets.randbelow(900000) + 100000
+                existing_user.otp_expiry = timezone.now() + timedelta(minutes=10)
+                existing_user.save()
+                
+                # Send OTP email
+                try:
+                    send_mail(
+                        'Verify Your Email',
+                        f'Your OTP is {existing_user.otp}. Valid for 10 minutes.',
+                        settings.EMAIL_HOST_USER,
+                        [email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    print(f"Email sending failed: {e}")
+                
+                user = existing_user
+            else:
+                # Regular registration for new users
+                user = serializer.save()
+                
             cache.set(f'otp_{user.email}', user.otp, timeout=600)  # 10 min expiry
-            return Response({"message": "OTP sent to email"}, status=status.HTTP_201_CREATED)
+            return Response({
+                "message": "OTP sent to email",
+                "email": user.email
+            }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyOTPView(APIView):
     def post(self, request):
         email = request.data.get('email')
         otp = request.data.get('otp')
-        cached_otp = cache.get(f'otp_{email}')
+        
+        if not email or not otp:
+            return Response({
+                "error": "Both email and otp are required"
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         user = CustomUser.objects.filter(email=email).first()
-        if user and cached_otp == otp and user.otp_expiry > timezone.now():
-            user.is_email_verified = True
-            user.otp = None
-            user.otp_expiry = None
-            user.save()
-            cache.delete(f'otp_{email}')
-            return Response({"message": "Email verified"}, status=status.HTTP_200_OK)
-        return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not user:
+            return Response({
+                "error": "User not found"
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Check both cached OTP and user OTP
+        cached_otp = cache.get(f'otp_{email}')
+        user_otp = user.otp
+        
+        if not cached_otp and not user_otp:
+            return Response({
+                "error": "No OTP found for this user"
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Use the OTP that exists
+        valid_otp = cached_otp or user_otp
+        
+        if valid_otp != otp:
+            logger.info(f"OTP Mismatch - Provided: {otp}, Stored: {valid_otp}")
+            return Response({
+                "error": "Invalid OTP"
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        if user.otp_expiry <= timezone.now():
+            return Response({
+                "error": "OTP has expired"
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Clear both cached and user OTP
+        user.is_email_verified = True
+        user.otp = None
+        user.otp_expiry = None
+        user.save()
+        cache.delete(f'otp_{email}')
+        
+        logger.info(f"OTP Verification successful for {email}")
+        return Response({
+            "message": "Email verified"
+        }, status=status.HTTP_200_OK)
 
 class LoginView(APIView):
     def post(self, request):
