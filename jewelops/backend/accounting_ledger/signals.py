@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import timezone
 from django.db import transaction
 from django.db.models import Sum, Count, F, DecimalField
@@ -6,7 +7,7 @@ from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from .models import Expense, ExpenseCategory, PaymentKind, SalePayment, Sales, SaleItem
 
-def _recompute_sales_aggregates(sale_id: int | None):
+def _recompute_sales_aggregates(sale_id: Optional[int]):
     """
     Recompute and update the item_count, total_weight, and total_sale_price
     for the given Sales instance.

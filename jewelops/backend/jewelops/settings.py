@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -9,7 +10,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -43,6 +44,20 @@ TEMPLATES = [{
         ]
     }
 }]
+
+#production.settings.py can override these settings
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("PGDATABASE", "jewelops"),
+        "USER": os.getenv("PGUSER", "jewelops"),
+        "PASSWORD": os.getenv("PGPASSWORD", "changeme"),
+        "HOST": os.getenv("PGHOST", "127.0.0.1"),
+        "PORT": os.getenv("PGPORT", "5432"),
+        "CONN_MAX_AGE": 60,  # keep connections open for reuse
+        # "OPTIONS": {"sslmode": "require"},  # enable in prod/managed PG
+    }
+}
 
 WSGI_APPLICATION = 'jewelops.wsgi.application'
 
