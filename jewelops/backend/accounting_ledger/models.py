@@ -27,7 +27,10 @@ class ExpenseCategory(models.TextChoices):
 class Sales(models.Model):
     business_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
-    invoice_number = models.IntegerField()
+    invoice_number = models.IntegerField(
+        unique=True,
+        null=False,
+    )
     customer_name = models.CharField(max_length=255) #TODO: Change to ForeignKey when Customer model is created
     sold_by = models.CharField(max_length=100)
     item_count = models.IntegerField(default=0, editable=False)
@@ -67,6 +70,7 @@ class SaleItem(models.Model):
     code = models.IntegerField(
         null=True, 
         blank=True, 
+        unique=True,
         help_text="Item code within the sale, can be null for order items"
     )
     weight = models.DecimalField(
@@ -83,15 +87,6 @@ class SaleItem(models.Model):
         blank=True,
         help_text="Price on market rate at the time of business date")
     description = models.TextField()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['sale', 'code'],
-                condition=Q(code__isnull=False),
-                name='uniq_sale_code_when_present',
-            )
-        ]
 
 
 class GoldPayment(models.Model):

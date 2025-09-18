@@ -1,2 +1,4 @@
 from django.urls import path
-urlpatterns = []
+from django.http import HttpResponse
+urlpatterns = [
+]
