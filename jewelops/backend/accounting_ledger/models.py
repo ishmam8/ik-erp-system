@@ -18,11 +18,45 @@ class PaymentMethod(models.TextChoices):
 class PaymentKind(models.TextChoices):
     PAYMENT = "PAYMENT", "Payment"
     REFUND  = "REFUND",  "Refund"
+    RST_ADVANCE = "RST_ADVANCE", "RST Advance Payment"
+    RST_BALANCE  = "RST_BALANCE",  "RST Balance Payment"
 
 class ExpenseCategory(models.TextChoices):
     REFUND_ORDER = "REFUND_ORDER", "Refund – Order"
     REFUND_RST   = "REFUND_RST",   "Refund – RST"
     OTHER        = "OTHER",        "Other"
+
+class ItemStatus(models.TextChoices):
+    AVAILABLE = "AVAILABLE", "Available"
+    RST_BOOKED = "RST_BOOKED", "RST Booked"
+    SOLD      = "SOLD",      "Sold"
+    RETURNED  = "RETURNED",  "Returned"
+    VOIDED   = "VOIDED",   "Voided"
+
+class RSTStatus(models.TextChoices):
+    BOOKED = "BOOKED", "Booked (Partial Payment)"
+    COMPLETED = "COMPLETED", "Completed (Full Payment)"
+    VOIDED = "VOIDED", "Voided"
+
+
+class Item(models.Model):
+    ''' Represents an individual inventory item '''
+    code = models.IntegerField(unique=True, primary_key=True)
+    purity = models.CharField(max_length=50)
+    weight = models.DecimalField(
+        max_digits=10, 
+        decimal_places=3,
+        null=True,
+        blank=True,
+        help_text="Weight of the item, can be null if not measured yet")
+    description = models.TextField()
+    status = models.CharField(max_length=200, choices=ItemStatus.choices, default=ItemStatus.AVAILABLE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Item {self.code} - {self.purity} - {self.weight}g - {self.status}"
+
 
 class Sales(models.Model):
     business_date = models.DateField()
@@ -60,33 +94,26 @@ class SalePayment(models.Model):
     method = models.CharField(max_length=50, choices=PaymentMethod.choices)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(null=True, blank=True, help_text="Additional details like card type or gold description")
-    kind = models.CharField(max_length=10, choices=PaymentKind.choices, default=PaymentKind.PAYMENT)
+    kind = models.CharField(max_length=200, choices=PaymentKind.choices, default=PaymentKind.PAYMENT)
+    due_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True, 
+        help_text="The remaining amount due after this payment")
+    due_by = models.CharField(max_length=100, null=True)
 
 
 class SaleItem(models.Model):
     sale = models.ForeignKey(Sales, related_name='items', on_delete=models.CASCADE)
-    purity = models.CharField(max_length=50)
-    method  = models.CharField(max_length=10, choices=PaymentMethod.choices)
-    code = models.IntegerField(
-        null=True, 
-        blank=True, 
-        unique=True,
-        help_text="Item code within the sale, can be null for order items"
-    )
-    weight = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="Weight of the item, can be null for order items"
-    )
+    item = models.ForeignKey(Item, null=False, related_name='item', on_delete=models.PROTECT)
     purity_price = models.DecimalField(
         max_digits=10, 
         decimal_places=2,
         null=True,
         blank=True,
         help_text="Price on market rate at the time of business date")
-    description = models.TextField()
+    description = models.TextField(blank=True)
 
 
 class GoldPayment(models.Model):
@@ -122,6 +149,7 @@ class RST(models.Model):
         help_text="Remaining amount for RST booking")
     rst_final_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     delivery_date = models.DateField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True, help_text="When RST was completed")
 
     @property
     def number(self):
@@ -130,13 +158,9 @@ class RST(models.Model):
 
 class RSTItem(models.Model):
     rst = models.ForeignKey(RST, related_name='rst_items', on_delete=models.CASCADE)
-    code = models.IntegerField(help_text="Item code within the RST booking")
-    purity = models.CharField(max_length=50)
+    item = models.ForeignKey(Item, null=False, related_name='items', on_delete=models.PROTECT)
+    description = models.TextField(blank=True)
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['rst','code'], name='uniq_rst_code')
-        ]
 
 class RSTVoided(models.Model):
     rst = models.OneToOneField(RST, on_delete=models.CASCADE, related_name='voided_info')
@@ -145,10 +169,10 @@ class RSTVoided(models.Model):
 
 class Order(models.Model):
     sale = models.OneToOneField(Sales, on_delete=models.CASCADE, related_name='order_details')
-    number = models.CharField(max_length=50, unique=True, help_text="Order number same as invoice number")
     assigned_to = models.CharField(max_length=100)
     is_completed = models.BooleanField(default=False)
     delivery_date = models.DateField(null=True, blank=True, help_text="Expected delivery date for the order")
+    completed_at = models.DateTimeField(null=True, blank=True, help_text="When the order was completed")
 
     def clean(self):
         super().clean()
@@ -166,6 +190,10 @@ class Order(models.Model):
                     {"is_completed": "All items must have code, positive weight, and price before completion."}
                 )
     
+    @property
+    def number(self):
+        return self.sale.invoice_number
+
     def save(self, *args, **kwargs):
         # Ensure validation also runs outside ModelForms/DRF
         self.full_clean()
@@ -175,11 +203,7 @@ class Order(models.Model):
 class Expense(models.Model):
     business_date  = models.DateField()
     created_at     = models.DateTimeField(auto_now_add=True)
-    category       = models.CharField(max_length=20, choices=ExpenseCategory.choices, default=ExpenseCategory.OTHER)
+    category       = models.CharField(max_length=200, choices=ExpenseCategory.choices, default=ExpenseCategory.OTHER)
     description    = models.TextField(blank=True)
     amount         = models.DecimalField(max_digits=12, decimal_places=2)
-    payment_method = models.CharField(max_length=10, choices=PaymentMethod.choices)
-
-    # optional traceability (recommended)
-    sale    = models.ForeignKey(Sales, null=True, blank=True, on_delete=models.SET_NULL)
-    payment = models.OneToOneField('SalePayment', null=True, blank=True, on_delete=models.SET_NULL)
+    payment_method = models.CharField(max_length=100, choices=PaymentMethod.choices)
