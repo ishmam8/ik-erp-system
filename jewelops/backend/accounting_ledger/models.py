@@ -73,11 +73,8 @@ class Sales(models.Model):
         decimal_places=2, 
         default=0, 
         editable=False)
-    total_sale_price = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2,
-        default=0,
-        editable=False)
+    #TODO: Change total sale price to char field
+    total_sale_price = models.CharField(max_length=100, blank=True)
     
     @property
     def is_rst(self):
@@ -107,9 +104,7 @@ class SalePayment(models.Model):
 class SaleItem(models.Model):
     sale = models.ForeignKey(Sales, related_name='items', on_delete=models.CASCADE)
     item = models.ForeignKey(Item, null=False, related_name='item', on_delete=models.PROTECT)
-    purity_price = models.DecimalField(
-        max_digits=10, 
-        decimal_places=2,
+    purity_price = models.CharField(
         null=True,
         blank=True,
         help_text="Price on market rate at the time of business date")
@@ -124,7 +119,7 @@ class GoldPayment(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={'method': 'GOLD'},
     )
-    weight = models.DecimalField(max_digits=10, decimal_places=2)
+    weight = models.CharField(max_length=100)
     purity = models.CharField(max_length=50)
 
     def clean(self):
