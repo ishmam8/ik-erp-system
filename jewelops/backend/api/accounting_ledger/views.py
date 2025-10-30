@@ -2,9 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from decimal import Decimal, InvalidOperation
 from django.db import transaction
-from api.accounting_ledger.serializers import SalesComposeSerializer
+from api.accounting_ledger.serializers import OrderComposeSerializer, RSTBookingSerializer, SalesComposeSerializer
+from accounting_ledger.utils import to_decimal
 
 
 class SalesView(APIView):
@@ -25,57 +25,64 @@ class SalesView(APIView):
 
         results = []
         errors = []
-
-        #create item if it does not exist
-
-        #iterate through each row in the request data
-        #check if the request data has orders
-            # if Order exists in sale (sale_price = order)
-                # create a sale_payload and call database?
-                # cause order table has a sales foreign key
-                # call the Order serializer to validate and create order sale details
-            #create
+        serializer = None
 
         for idx, row in enumerate(rows):
-            def to_decimal(v, default='0'):
-                try:
-                    return Decimal(str(v))
-                except (InvalidOperation, TypeError):
-                    return Decimal(default)
-                
             cleaned_row = {
                 'business_date': business_date,
                 'invoice_number': int(row.get('invoice_number')) or None,
                 'customer_name': row.get('customer') or row.get('customer_name') or '',
-                'sold_by': row.get('sold_by') or '',
+                
+                'item_code': row.get('item_code') or '',    # parser will handle formats like "(123)(456)"
+                'item': row.get('item') or '', # names like "Earring,Wristlet"
                 'item_count': int(row.get('quantity') or 0),
                 'gold_weight': to_decimal(row.get('gold_weight'), '0'),
-                'sale_price': row.get('sale_price') or '',
-                'item_code': row.get('item_code') or '',    # parser will handle formats like "(123)(456)"
-                'item': row.get('item') or '',              # names like "Earring,Wristlet"
                 'kdm_vori': row.get('kdm_vori') or '',
+
                 'gold_payment': row.get('gold_payment') or '',
+                'sale_price': row.get('sale_price') or '',
                 'cash_card_payment': int(row.get('cash_card_payment') or 0),
-                'customer_due': to_decimal(row.get('customer_due'), '0'),
-                'due_by': row.get('due_by') or '',
                 'payment_type': row.get('payment_type') or '',
+                
+                'sold_by': row.get('sold_by') or '',
+                'due_amount': to_decimal(row.get('customer_due'), '0'),
+                'due_by': row.get('due_by') or '',
+
+                'is_rst': bool(row.get('is_rst')),
+                'rst_booking_payment': to_decimal(row.get('rst_payment'), '0'), # Only for RST bookings, final payment estimated #TODO:
+                'rst_adv': to_decimal(row.get('rst_advanced'), '0'),       # Only for RST bookings, advance payment made
+                'rst_status': row.get('rst_status') or '',
+
+                'assigned_to': row.get('order_assigned_to'),
+                'is_completed': row.get('is_completed'),
+                'delivery_date': row.get('order_delivery_date'),
+                'completed_at': row.get('order_completed_date') or None ,
+                'order_description': row.get('order_items') or '',
             }
-            #Map incoming row into SalesComposeSerializer expected format
-            sale_payload = {
-                'items': [cleaned_row],
-            }
-            serializer = SalesComposeSerializer(data=sale_payload)
+
+            tag = (row.get("sale_price") or "").strip().lower()
+            is_rst = bool(row.get("is_rst")) or tag == "rst"
+            is_order = tag == "order"
+
+            if is_rst:
+                serializer = RSTBookingSerializer(data={"row": cleaned_row})
+            elif is_order:
+                serializer = OrderComposeSerializer(data={"row": cleaned_row})
+            else:
+                serializer = SalesComposeSerializer(data={"row": cleaned_row})
+            
             try:
+                # keep atomic here; remove nested atomic in create_sales_from_columns
                 with transaction.atomic():
-                    if serializer.is_valid(raise_exception=True):
-                        sale_instance = serializer.save()
-                        results.append({'row': idx,'sale_id': sale_instance.id, 'invoice_number': sale_instance.invoice_number})
+                    serializer.is_valid(raise_exception=True)
+                    sale_instance = serializer.save()
+                    results.append({
+                        "row": idx,
+                        "sale_id": sale_instance.id,
+                        "invoice_number": sale_instance.invoice_number
+                    })
             except Exception as e:
-                print(f"Error processing row {idx}: {str(e)}")
-                errors.append({
-                    'row': idx,
-                    'errors': str(e),
-                })
+                errors.append({"row": idx, "errors": str(e)})
         # Return success response
         return Response({
             "message": "Sales data received successfully!",

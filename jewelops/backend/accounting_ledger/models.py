@@ -73,7 +73,6 @@ class Sales(models.Model):
         decimal_places=2, 
         default=0, 
         editable=False)
-    #TODO: Change total sale price to char field
     total_sale_price = models.CharField(max_length=100, blank=True)
     
     @property
@@ -145,6 +144,7 @@ class RST(models.Model):
     rst_final_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     delivery_date = models.DateField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True, help_text="When RST was completed")
+    status = models.CharField(max_length=100, choices=RSTStatus.choices, default=RSTStatus.BOOKED)
 
     @property
     def number(self):
@@ -168,8 +168,10 @@ class Order(models.Model):
     is_completed = models.BooleanField(default=False)
     delivery_date = models.DateField(null=True, blank=True, help_text="Expected delivery date for the order")
     completed_at = models.DateTimeField(null=True, blank=True, help_text="When the order was completed")
+    item_description = models.CharField(max_length=200, blank=True)
 
     def clean(self):
+        """Check for Order Completion"""
         super().clean()
         if self.is_completed:
             sale = self.sale

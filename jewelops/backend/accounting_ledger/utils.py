@@ -1,5 +1,12 @@
 import re
 from typing import List, Tuple, Optional, Union
+from decimal import Decimal, InvalidOperation
+
+def to_decimal(v, default='0'):
+    try:
+        return Decimal(str(v))
+    except (InvalidOperation, TypeError):
+        return Decimal(default)
 
 def parse_item_codes(code_value: Optional[Union[str, int, list, tuple]],
                      name_value: Optional[Union[str, list, tuple]] = None
