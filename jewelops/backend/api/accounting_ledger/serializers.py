@@ -35,7 +35,7 @@ class SaleOrderRowSerializer(serializers.Serializer):
     order_description = serializers.CharField(required=False, allow_blank=True)
     assigned_to = serializers.CharField(required=False, allow_blank=True)
     is_completed = serializers.BooleanField(required=False, default=False)
-    delivery_date = serializers.DateTimeField(required=False, allow_null=True)
+    delivery_date = serializers.DateField(required=False, allow_null=True)
     completed_at = serializers.DateField(required=False, allow_null=True)
     item_description = serializers.CharField(required=False, allow_blank=True)
 
@@ -64,6 +64,7 @@ class SaleRowSerializer(serializers.Serializer):
     payment_type = serializers.CharField(required=False, allow_blank=True)
     rst_booking_payment = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, default=Decimal('0'))
     rst_adv = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, default=Decimal('0'))
+    rst_order = serializers.CharField(required=False, allow_blank=True)
     
     def to_internal_value(self, data):
         # map 'customer' -> 'customer_name' if provided
@@ -228,7 +229,7 @@ class SalesListSerializer(serializers.ModelSerializer):
         model = Sales
         fields = [
             'id', 'business_date', 'invoice_number', 'customer_name', 'sold_by', 
-            'item_count', 'total_weight', 'total_sale_price', 'is_rst', 'is_order', 'rst_status'
+            'item_count', 'total_weight', 'total_sale_price', 'is_order', 'rst_status'
         ]
 
 
@@ -250,7 +251,7 @@ class SalesDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'business_date', 'invoice_number', 'customer_name', 'sold_by',
             'item_count', 'total_weight', 'total_sale_price',
-            'items', 'payments', 'is_rst', 'is_order', 
+            'items', 'payments', 'is_order', 
             'rst_details', 'order_details', 'advance_payments', 'balance_payments'
         ]
     
@@ -278,7 +279,6 @@ class RSTBookingSerializer(serializers.Serializer):
         
     def create(self, validated_data):
         rst_sale = create_sales_from_row(validated_data["row"], item_status=ItemStatus.RST_BOOKED)
-        print("RSTTTT,", rst_sale[-1])
         return rst_sale[-1]
     
 
@@ -287,25 +287,24 @@ class OrderComposeSerializer(serializers.Serializer):
     
     def create(self, validated_data):
         v_row = validated_data["row"]
-        with transaction.atomic():
-            sale = Sales.objects.create(
-                business_date=v_row.get('business_date'),
-                customer_name=v_row.get('customer_name', ''),
-                sold_by=v_row.get('sold_by', ''),
-                invoice_number=v_row.get('invoice_number'),
-                item_count=v_row.get('item_count', 0),
-                total_sale_price=v_row.get('sale_price')
-            )
-            sale.save()
-            print("ASSIGNED TO", v_row.get('assigned_to')) 
-            order = Order.objects.create(
-                sale=Sales.objects.get(id=sale.id),
-                assigned_to=v_row.get('assigned_to'),
-                is_completed=v_row.get('is_completed', False),
-                #TODO: delivery date might fail in format
-                delivery_date=v_row.get('delivery_date'),
-                item_description=v_row.get('order_description')
-                #TODO: tackle when a order has been completed
-            )
-            order.save()
+        sale = Sales.objects.create(
+            business_date=v_row.get('business_date'),
+            customer_name=v_row.get('customer_name', ''),
+            sold_by=v_row.get('sold_by', ''),
+            invoice_number=v_row.get('invoice_number'),
+            item_count=v_row.get('item_count', 0),
+            total_sale_price=v_row.get('sale_price')
+        )
+        #TODO:
+        # sale_payment = SalePayment.objects.create
+        print("ASSIGNED TO", v_row.get('assigned_to')) 
+        order = Order.objects.create(
+            sale=Sales.objects.get(id=sale.id),
+            assigned_to=v_row.get('assigned_to'),
+            is_completed=v_row.get('is_completed', False),
+            #TODO: delivery date might fail in format
+            delivery_date=v_row.get('delivery_date'),
+            item_description=v_row.get('order_description')
+            #TODO: tackle when a order has been completed
+        )
         return sale

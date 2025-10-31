@@ -15,8 +15,8 @@ def create_sales_from_row(row, *, item_status):
         total_sale_price=row.get('sale_price')
     )
     sale.save()
-    print("row sale price",row.get('sale_price'))
-    if (row.get("sale_price")).strip().lower() == 'rst':
+    print("row rst order",row.get('rst_order'))
+    if row.get("rst_order") == 'RST':
         rst = RST.objects.create(
                 sale=Sales.objects.get(id=sale.id),
                 #TODO:
@@ -51,7 +51,7 @@ def create_sales_from_row(row, *, item_status):
         )
         sale_item.save()
 
-        if (row.get("sale_price")).strip().lower() == 'rst':
+        if row.get("rst_order") == 'RST':
             rst_item = RSTItem.objects.create(
                 rst=RST.objects.get(id=rst.id),
                 item=Item.objects.get(code=code),

@@ -15,68 +15,68 @@ from .models import (
 # SALES AGGREGATES - Auto-update item_count, total_weight, total_sale_price
 # =============================================================================
 
-def recompute_sales_aggregates(sale_id):
-    """
-    Recompute and update the item_count, total_weight, and total_sale_price
-    for the given Sales instance.
-    """
-    if not sale_id:
-        return
+# def recompute_sales_aggregates(sale_id):
+#     """
+#     Recompute and update the item_count, total_weight, and total_sale_price
+#     for the given Sales instance.
+#     """
+#     if not sale_id:
+#         return
         
-    agg = SaleItem.objects.filter(sale_id=sale_id).aggregate(
-        item_count=Count('id'),
-        total_weight=Coalesce(
-            Sum('item__weight'), 
-            Decimal('0.00'),
-            output_field=DecimalField(max_digits=10, decimal_places=2)
-        ),
-        total_sale_price=Coalesce(
-            Sum(
-                F('item__weight') * F('purity_price'),
-                output_field=DecimalField(max_digits=10, decimal_places=2)
-            ), 
-            Decimal('0.00'),
-            output_field=DecimalField(max_digits=10, decimal_places=2)
-        ),
-    )
+#     agg = SaleItem.objects.filter(sale_id=sale_id).aggregate(
+#         item_count=Count('id'),
+#         total_weight=Coalesce(
+#             Sum('item__weight'), 
+#             Decimal('0.00'),
+#             output_field=DecimalField(max_digits=10, decimal_places=2)
+#         ),
+#         total_sale_price=Coalesce(
+#             Sum(
+#                 F('item__weight') * F('purity_price'),
+#                 output_field=DecimalField(max_digits=10, decimal_places=2)
+#             ), 
+#             Decimal('0.00'),
+#             output_field=DecimalField(max_digits=10, decimal_places=2)
+#         ),
+#     )
     
-    Sales.objects.filter(id=sale_id).update(**agg)
+#     Sales.objects.filter(id=sale_id).update(**agg)
 
 
-@receiver(pre_save, sender=SaleItem)
-def capture_old_sale_for_saleitem(sender, instance, **kwargs):
-    """Capture old sale_id before save to handle sale changes"""
-    if instance.pk:
-        try:
-            old = sender.objects.only('sale_id').get(pk=instance.pk)
-            instance._old_sale_id = old.sale_id
-        except sender.DoesNotExist:
-            instance._old_sale_id = None
+# @receiver(pre_save, sender=SaleItem)
+# def capture_old_sale_for_saleitem(sender, instance, **kwargs):
+#     """Capture old sale_id before save to handle sale changes"""
+#     if instance.pk:
+#         try:
+#             old = sender.objects.only('sale_id').get(pk=instance.pk)
+#             instance._old_sale_id = old.sale_id
+#         except sender.DoesNotExist:
+#             instance._old_sale_id = None
 
 
-@receiver(post_save, sender=SaleItem)
-def update_sales_aggregates_on_saleitem_save(sender, instance, created, **kwargs):
-    """Update sales aggregates when SaleItem is created/updated"""
-    old_sale_id = getattr(instance, '_old_sale_id', None)
-    new_sale_id = instance.sale_id
+# @receiver(post_save, sender=SaleItem)
+# def update_sales_aggregates_on_saleitem_save(sender, instance, created, **kwargs):
+#     """Update sales aggregates when SaleItem is created/updated"""
+#     old_sale_id = getattr(instance, '_old_sale_id', None)
+#     new_sale_id = instance.sale_id
     
-    def update_aggregates():
-        # If item moved between sales, update both
-        if old_sale_id and old_sale_id != new_sale_id:
-            recompute_sales_aggregates(old_sale_id)
+#     def update_aggregates():
+#         # If item moved between sales, update both
+#         if old_sale_id and old_sale_id != new_sale_id:
+#             recompute_sales_aggregates(old_sale_id)
         
-        recompute_sales_aggregates(new_sale_id)
+#         recompute_sales_aggregates(new_sale_id)
     
-    transaction.on_commit(update_aggregates)
+#     transaction.on_commit(update_aggregates)
 
 
-@receiver(post_delete, sender=SaleItem)
-def update_sales_aggregates_on_saleitem_delete(sender, instance, **kwargs):
-    """Update sales aggregates when SaleItem is deleted"""
-    def update_aggregates():
-        recompute_sales_aggregates(instance.sale_id)
+# @receiver(post_delete, sender=SaleItem)
+# def update_sales_aggregates_on_saleitem_delete(sender, instance, **kwargs):
+#     """Update sales aggregates when SaleItem is deleted"""
+#     def update_aggregates():
+#         recompute_sales_aggregates(instance.sale_id)
     
-    transaction.on_commit(update_aggregates)
+#     transaction.on_commit(update_aggregates)
 
 
 # =============================================================================

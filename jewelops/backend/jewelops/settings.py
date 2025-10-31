@@ -3,6 +3,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
 SECRET_KEY = 'dev'
 
 DEBUG = True
@@ -130,7 +133,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Static files configuration for React SPA
 STATICFILES_DIRS = [
-    BASE_DIR.parent / 'frontend' / 'dist',  # React build output
+    # BASE_DIR.parent / 'frontend' / 'dist',  # React build output
 ]
 
 # Default primary key field type
@@ -163,32 +166,77 @@ if not DEBUG:
 
 # Logging configuration
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+    "version": 1,
+    "disable_existing_loggers": False,
+
+    "filters": {
+        "ensure_extra": {
+            "()": "jewelops.logging_filters.EnsureExtraFilter",
         },
     },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+
+    "formatters": {
+        # use this for normal console / django logs
+        "verbose": {
+            "format": "{levelname} {asctime} {name} {message}",
+            "style": "{",
+        },
+
+        # use this for ledger.log, we want structured audits incl. cleaned_row
+        "ledger_verbose": {
+            "format": "%(asctime)s [%(levelname)s] %(name)s %(message)s",
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
+
+    "handlers": {
+        # console logging (dev terminal, docker logs, etc.)
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",           # <-- DOES NOT reference %(extra)s
+            "level": "DEBUG",    # <-- injects .extra = {} so safe anyway
+        },
+
+        # rotating file just for ledger/sales audit trail
+        "ledger_file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": str(LOG_DIR / "ledger.log"),
+            "when": "midnight",
+            "backupCount": 14,
+            "encoding": "utf-8",
+            "formatter": "ledger_verbose",    # <-- DOES reference %(extra)s
+            "level": "INFO",   # <-- guarantees record.extra exists
+        },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
+
+    # fallback/root logger for anything uncaptured
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+
+    "loggers": {
+        # Django internal logs
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
+        "django.request": {
+            "handlers": ["console", "ledger_file"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+
+        # YOUR LOGGER
+        "ledger.sales": {
+            "handlers": ["console", "ledger_file"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
 }
+
 
 # Future: ASGI configuration (for live dashboards)
 # ASGI_APPLICATION = 'jewelops.asgi.application'
