@@ -12,7 +12,7 @@ from accounting_ledger.models import (
 from accounting_ledger.utils import parse_item_codes, parse_payment_methods
 from services.sales import create_sales_from_row
 
-# Serializer for individual sale row in a sales request
+# Serializer Check for individual rows in requesta
 class SaleOrderRowSerializer(serializers.Serializer):
     business_date = serializers.DateField(required=True)
     invoice_number = serializers.IntegerField(required=True)
@@ -72,6 +72,15 @@ class SaleRowSerializer(serializers.Serializer):
             data = {**data, "customer_name": data["customer"]}
         return super().to_internal_value(data)
 
+class ExpenseRowSerializer(serializers.Serializer):
+    business_date = serializers.DateField(required=True)
+    category = serializers.CharField(required=False, allow_blank=True)
+    expense_type = serializers.CharField(required=False, allow_blank=True)
+    description = serializers.CharField(required=False, allow_blank=True)
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
+    payment_method = serializers.CharField(required=False, allow_blank=True)
+
+# --------------------------------------  
 
 # --------- MODEL SERIALIZERS ----------
 class ItemSerializer(serializers.ModelSerializer):
@@ -151,8 +160,8 @@ class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
         fields = [
-            'id', 'business_date', 'category', 'description', 
-            'amount', 'payment_method', 'sale', 'payment', 'created_at'
+            'id', 'business_date', 'category', 'expense_type', 'description', 
+            'amount', 'payment_method', 'created_at'
         ]
 
 
@@ -188,7 +197,7 @@ class SalesListSerializer(serializers.ModelSerializer):
         return hasattr(obj, "order_details")
 
 
-# ----------- COMPOSE -------------   
+# ----------- COMPOSE SERIALIZERS -------------   
 
 class SalesComposeSerializer(serializers.Serializer):
     row = SaleRowSerializer()
@@ -233,8 +242,29 @@ class OrderComposeSerializer(serializers.Serializer):
             #TODO: tackle when a order has been completed
         )
         return sale
+    
+
+class ExpenseComposeSerializer(serializers.Serializer):
+    """Specialized serializer for creating RST bookings"""
+    row = ExpenseRowSerializer()
+        
+    def create(self, validated_data):
+        v_row = validated_data["row"]
+        expenses = Expense.objects.create(
+            business_date=v_row.get('business_date'),
+            expense_type=v_row.get('expense_type'),
+            description=v_row.get('description'),
+            amount=v_row.get('amount'),
+            payment_method=v_row.get('payment_method')
+        )
+        return expenses
 
 # ---------------  ----------------  
+
+
+
+
+
 
 
 # class RSTCompletionSerializer(serializers.Serializer):

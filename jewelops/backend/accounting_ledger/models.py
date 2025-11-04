@@ -22,9 +22,10 @@ class PaymentKind(models.TextChoices):
     RST_BALANCE  = "RST_BALANCE",  "RST Balance Payment"
 
 class ExpenseCategory(models.TextChoices):
-    REFUND_ORDER = "REFUND_ORDER", "Refund – Order"
-    REFUND_RST   = "REFUND_RST",   "Refund – RST"
-    OTHER        = "OTHER",        "Other"
+    REFUND_ORDER  = "REFUND_ORDER", "Refund – Order"
+    REFUND_RST    = "REFUND_RST", "Refund – RST"
+    GOLD_CASHBACK = "GOLD_CASHBACK", "Gold Cashback"
+    OTHER         = "OTHER", "Other"
 
 class ItemStatus(models.TextChoices):
     AVAILABLE = "AVAILABLE", "Available"
@@ -201,6 +202,7 @@ class Expense(models.Model):
     business_date  = models.DateField()
     created_at     = models.DateTimeField(auto_now_add=True)
     category       = models.CharField(max_length=200, choices=ExpenseCategory.choices, default=ExpenseCategory.OTHER)
+    expense_type   = models.CharField(max_length=200, null=False, default='store-exp')
     description    = models.TextField(blank=True)
     amount         = models.DecimalField(max_digits=12, decimal_places=2)
     payment_method = models.CharField(max_length=100, choices=PaymentMethod.choices)
