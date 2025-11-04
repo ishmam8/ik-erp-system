@@ -24,7 +24,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',  
     'rest_framework_simplejwt.token_blacklist',  
 
-    'core',
     'accounting_ledger.apps.AccountingLedgerConfig',
     'api', 
     'web'

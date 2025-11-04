@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views.auth_views import RegisterView, LoginView, LogoutView, ProtectedView
-from .accounting_ledger.views import SalesView
+from .accounting_ledger.views import SalesView, SalesGetView
 from django.http import HttpResponse
 
 
@@ -15,4 +15,5 @@ urlpatterns = [
     path('protected/', ProtectedView.as_view(), name='protected'),
 
     path('ledger/sales/', SalesView.as_view(), name='sales'),
+    path('ledger/sales/all/', SalesGetView.as_view(), name='sales-list'),
 ]

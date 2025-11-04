@@ -72,6 +72,8 @@ class SaleRowSerializer(serializers.Serializer):
             data = {**data, "customer_name": data["customer"]}
         return super().to_internal_value(data)
 
+
+# --------- MODEL SERIALIZERS ----------
 class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
@@ -80,17 +82,6 @@ class ItemSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
-
-
-class SaleItemSerializer(serializers.ModelSerializer):
-    # Include item details for read operations
-    item_details = ItemSerializer(source='item', read_only=True)
-    
-    class Meta:
-        model = SaleItem
-        fields = [
-            'id', 'sale', 'item', 'purity_price', 'item_details'
-        ]
 
 
 class SalePaymentSerializer(serializers.ModelSerializer):
@@ -107,109 +98,55 @@ class GoldPaymentSerializer(serializers.ModelSerializer):
 
 class RSTItemSerializer(serializers.ModelSerializer):
     # Include item details for read operations
-    item_details = ItemSerializer(source='item', read_only=True)
-    
+    item_details = ItemSerializer(source="item",read_only=True)
+
     class Meta:
         model = RSTItem
-        fields = ['id', 'rst', 'item', 'item_details']
+        # we don't need to expose `rst` here; parent RST has the list
+        fields = ["id", "description", "item_details"]
 
 
 class RSTVoidedSerializer(serializers.ModelSerializer):
     class Meta:
         model = RSTVoided
-        fields = ['voided_at']
+        fields = ["voided_at"]
 
 
 class RSTSerializer(serializers.ModelSerializer):
+    # from RSTItem.rst → related_name='rst_items'
     rst_items = RSTItemSerializer(many=True, read_only=True)
+    # from RSTVoided.rst → related_name='voided_info'
     voided_info = RSTVoidedSerializer(read_only=True)
+    # map to the @property `number` on the model
     number = serializers.IntegerField(read_only=True)
-    
+
     class Meta:
         model = RST
-        fields = [
-            'id', 'status', 'rst_adv', 'rst_due', 'rst_final_price', 
-            'delivery_date', 'completed_at', 'number', 'rst_items', 'voided_info'
+        fields = ["id","status","rst_adv","rst_due","rst_final_price",
+            "delivery_date","completed_at","number","rst_items",
+            "voided_info",
         ]
 
 
-class RSTCompletionSerializer(serializers.Serializer):
-    """Serializer for completing an RST booking"""
-    balance_payment_method = serializers.ChoiceField(choices=PaymentMethod.choices)
-    item_prices = serializers.DictField(
-        child=serializers.DecimalField(max_digits=10, decimal_places=2),
-        help_text="Dictionary mapping item codes to their final prices"
-    )
-    
-    def validate(self, data):
-        rst = self.context['rst']
-        item_codes = set(rst.rst_items.values_list('item__code', flat=True))
-        price_codes = set(map(int, data['item_prices'].keys()))
-        
-        if item_codes != price_codes:
-            missing = item_codes - price_codes
-            extra = price_codes - item_codes
-            error_msg = []
-            if missing:
-                error_msg.append(f"Missing prices for items: {list(missing)}")
-            if extra:
-                error_msg.append(f"Prices provided for non-RST items: {list(extra)}")
-            raise serializers.ValidationError(" ".join(error_msg))
-        
-        return data
-    
-    def save(self):
-        rst = self.context['rst']
-        validated_data = self.validated_data
-        
-        with transaction.atomic():
-            # Create SaleItems with prices
-            total_price = Decimal('0')
-            for rst_item in rst.rst_items.all():
-                item_code = str(rst_item.item.code)
-                price = validated_data['item_prices'][item_code]
-                
-                SaleItem.objects.create(
-                    sale=rst.sale,
-                    item=rst_item.item,
-                    method=validated_data['balance_payment_method'],
-                    purity_price=price
-                )
-                
-                # Update item status
-                rst_item.item.status = ItemStatus.SOLD
-                rst_item.item.save()
-                
-                total_price += price
-            
-            # Calculate balance due
-            balance_due = total_price - rst.rst_adv
-            
-            # Create balance payment
-            SalePayment.objects.create(
-                sale=rst.sale,
-                method=validated_data['balance_payment_method'],
-                amount=balance_due,
-                kind=PaymentKind.RST_BALANCE
-            )
-            
-            # Update RST
-            rst.status = RSTStatus.COMPLETED
-            rst.completed_at = timezone.now()
-            rst.rst_final_price = total_price
-            rst.rst_due = balance_due
-            rst.save()
-            
-            # Update sale totals
-            sale = rst.sale
-            sale.total_sale_price = total_price
-            sale.save()
-        
-        return rst
+class OrderSerializer(serializers.ModelSerializer):
+    # expose the invoice number from the related sale
+    number = serializers.IntegerField(read_only=True)
 
+    class Meta:
+        model = Order
+        # sale is implied via number / related_name, so we usually don't expose sale id here
+        fields = [
+            "id",
+            "assigned_to",
+            "is_completed",
+            "delivery_date",
+            "completed_at",
+            "item_description",
+            "number",
+        ]
+        read_only_fields = fields
 
-
-        
+     
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
@@ -219,49 +156,37 @@ class ExpenseSerializer(serializers.ModelSerializer):
         ]
 
 
+class SaleItemSerializer(serializers.ModelSerializer):
+    # Include item details for read operations
+    item_details = ItemSerializer(source="item",read_only=True)
+    
+    class Meta:
+        model = SaleItem
+        fields = [
+            'id', 'sale', 'item', 'purity_price', 'item_details'
+        ]
+
+
 class SalesListSerializer(serializers.ModelSerializer):
-    """Serializer for listing sales with basic details
-    READ_ONLY
-    """
-    rst_status = serializers.CharField(source='rst_details.status', read_only=True)
-    
-    class Meta:
-        model = Sales
-        fields = [
-            'id', 'business_date', 'invoice_number', 'customer_name', 'sold_by', 
-            'item_count', 'total_weight', 'total_sale_price', 'is_order', 'rst_status'
-        ]
-
-
-class SalesDetailSerializer(serializers.ModelSerializer):
-    """Detailed serializer for a single sale, including items and payments
-    READ_ONLY
-    """
     items = SaleItemSerializer(many=True, read_only=True)
-    payments = SalePaymentSerializer(many=True, read_only=True)
-    # order_details = OrderComposeSerializer(read_only=True)
     rst_details = RSTSerializer(read_only=True)
-    
-    # Payment breakdown for RST
-    advance_payments = serializers.SerializerMethodField()
-    balance_payments = serializers.SerializerMethodField()
+    order_details = OrderSerializer(read_only=True)
+    is_rst = serializers.SerializerMethodField()
+    is_order = serializers.SerializerMethodField()
 
     class Meta:
         model = Sales
-        fields = [
-            'id', 'business_date', 'invoice_number', 'customer_name', 'sold_by',
-            'item_count', 'total_weight', 'total_sale_price',
-            'items', 'payments', 'is_order', 
-            'rst_details', 'order_details', 'advance_payments', 'balance_payments'
+        fields = ["id","invoice_number","business_date","customer_name","sold_by",
+            "item_count","total_weight","total_sale_price","is_rst","rst_details", "order_details", 
+            "is_order","items",
         ]
-    
-    def get_advance_payments(self, obj):
-        advance_payments = obj.payments.filter(kind=PaymentKind.RST_ADVANCE)
-        return SalePaymentSerializer(advance_payments, many=True).data
-    
-    def get_balance_payments(self, obj):
-        balance_payments = obj.payments.filter(kind=PaymentKind.RST_BALANCE)
-        return SalePaymentSerializer(balance_payments, many=True).data
+
+    def get_is_rst(self, obj):
+        return hasattr(obj, "rst_details")
+
+    def get_is_order(self, obj):
+        return hasattr(obj, "order_details")
+
 
 # ----------- COMPOSE -------------   
 
@@ -308,3 +233,186 @@ class OrderComposeSerializer(serializers.Serializer):
             #TODO: tackle when a order has been completed
         )
         return sale
+
+# ---------------  ----------------  
+
+
+# class RSTCompletionSerializer(serializers.Serializer):
+#     """Serializer for completing an RST booking"""
+#     balance_payment_method = serializers.ChoiceField(choices=PaymentMethod.choices)
+#     item_prices = serializers.DictField(
+#         child=serializers.DecimalField(max_digits=10, decimal_places=2),
+#         help_text="Dictionary mapping item codes to their final prices"
+#     )
+    
+#     def validate(self, data):
+#         rst = self.context['rst']
+#         item_codes = set(rst.rst_items.values_list('item__code', flat=True))
+#         price_codes = set(map(int, data['item_prices'].keys()))
+        
+#         if item_codes != price_codes:
+#             missing = item_codes - price_codes
+#             extra = price_codes - item_codes
+#             error_msg = []
+#             if missing:
+#                 error_msg.append(f"Missing prices for items: {list(missing)}")
+#             if extra:
+#                 error_msg.append(f"Prices provided for non-RST items: {list(extra)}")
+#             raise serializers.ValidationError(" ".join(error_msg))
+        
+#         return data
+    
+#     def save(self):
+#         rst = self.context['rst']
+#         validated_data = self.validated_data
+        
+#         with transaction.atomic():
+#             # Create SaleItems with prices
+#             total_price = Decimal('0')
+#             for rst_item in rst.rst_items.all():
+#                 item_code = str(rst_item.item.code)
+#                 price = validated_data['item_prices'][item_code]
+                
+#                 SaleItem.objects.create(
+#                     sale=rst.sale,
+#                     item=rst_item.item,
+#                     method=validated_data['balance_payment_method'],
+#                     purity_price=price
+#                 )
+                
+#                 # Update item status
+#                 rst_item.item.status = ItemStatus.SOLD
+#                 rst_item.item.save()
+                
+#                 total_price += price
+            
+#             # Calculate balance due
+#             balance_due = total_price - rst.rst_adv
+            
+#             # Create balance payment
+#             SalePayment.objects.create(
+#                 sale=rst.sale,
+#                 method=validated_data['balance_payment_method'],
+#                 amount=balance_due,
+#                 kind=PaymentKind.RST_BALANCE
+#             )
+            
+#             # Update RST
+#             rst.status = RSTStatus.COMPLETED
+#             rst.completed_at = timezone.now()
+#             rst.rst_final_price = total_price
+#             rst.rst_due = balance_due
+#             rst.save()
+            
+#             # Update sale totals
+#             sale = rst.sale
+#             sale.total_sale_price = total_price
+#             sale.save()
+        
+#         return rst
+
+
+# class SalesDetailSerializer(serializers.ModelSerializer):
+#     """Detailed serializer for a single sale, including items and payments
+#     READ_ONLY
+#     """
+#     items = SaleItemSerializer(many=True, read_only=True)
+#     payments = SalePaymentSerializer(many=True, read_only=True)
+#     # order_details = OrderComposeSerializer(read_only=True)
+#     rst_details = RSTSerializer(read_only=True)
+    
+#     # Payment breakdown for RST
+#     advance_payments = serializers.SerializerMethodField()
+#     balance_payments = serializers.SerializerMethodField()
+
+#     class Meta:
+#         model = Sales
+#         fields = [
+#             'id', 'business_date', 'invoice_number', 'customer_name', 'sold_by',
+#             'item_count', 'total_weight', 'total_sale_price',
+#             'items', 'payments', 'is_order', 
+#             'rst_details', 'order_details', 'advance_payments', 'balance_payments'
+#         ]
+    
+#     def get_advance_payments(self, obj):
+#         advance_payments = obj.payments.filter(kind=PaymentKind.RST_ADVANCE)
+#         return SalePaymentSerializer(advance_payments, many=True).data
+    
+#     def get_balance_payments(self, obj):
+#         balance_payments = obj.payments.filter(kind=PaymentKind.RST_BALANCE)
+#         return SalePaymentSerializer(balance_payments, many=True).data
+
+
+# class RSTCompletionSerializer(serializers.Serializer):
+#     """Serializer for completing an RST booking"""
+#     balance_payment_method = serializers.ChoiceField(choices=PaymentMethod.choices)
+#     item_prices = serializers.DictField(
+#         child=serializers.DecimalField(max_digits=10, decimal_places=2),
+#         help_text="Dictionary mapping item codes to their final prices"
+#     )
+    
+#     def validate(self, data):
+#         rst = self.context['rst']
+#         item_codes = set(rst.rst_items.values_list('item__code', flat=True))
+#         price_codes = set(map(int, data['item_prices'].keys()))
+        
+#         if item_codes != price_codes:
+#             missing = item_codes - price_codes
+#             extra = price_codes - item_codes
+#             error_msg = []
+#             if missing:
+#                 error_msg.append(f"Missing prices for items: {list(missing)}")
+#             if extra:
+#                 error_msg.append(f"Prices provided for non-RST items: {list(extra)}")
+#             raise serializers.ValidationError(" ".join(error_msg))
+        
+#         return data
+    
+#     def save(self):
+#         rst = self.context['rst']
+#         validated_data = self.validated_data
+        
+#         with transaction.atomic():
+#             # Create SaleItems with prices
+#             total_price = Decimal('0')
+#             for rst_item in rst.rst_items.all():
+#                 item_code = str(rst_item.item.code)
+#                 price = validated_data['item_prices'][item_code]
+                
+#                 SaleItem.objects.create(
+#                     sale=rst.sale,
+#                     item=rst_item.item,
+#                     method=validated_data['balance_payment_method'],
+#                     purity_price=price
+#                 )
+                
+#                 # Update item status
+#                 rst_item.item.status = ItemStatus.SOLD
+#                 rst_item.item.save()
+                
+#                 total_price += price
+            
+#             # Calculate balance due
+#             balance_due = total_price - rst.rst_adv
+            
+#             # Create balance payment
+#             SalePayment.objects.create(
+#                 sale=rst.sale,
+#                 method=validated_data['balance_payment_method'],
+#                 amount=balance_due,
+#                 kind=PaymentKind.RST_BALANCE
+#             )
+            
+#             # Update RST
+#             rst.status = RSTStatus.COMPLETED
+#             rst.completed_at = timezone.now()
+#             rst.rst_final_price = total_price
+#             rst.rst_due = balance_due
+#             rst.save()
+            
+#             # Update sale totals
+#             sale = rst.sale
+#             sale.total_sale_price = total_price
+#             sale.save()
+        
+#         return rst
