@@ -1,0 +1,271 @@
+2025-11-04 02:07:51,409 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:10:04,514 [ERROR] django.request Internal Server Error: /api/ledger/sales/all/
+Traceback (most recent call last):
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 199, in get
+    return Response(serializer.data, status=status.HTTP_200_OK)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 797, in data
+    ret = super().data
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 715, in to_representation
+    return [
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 716, in <listcomp>
+    self.child.to_representation(item) for item in iterable
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 525, in to_representation
+    for field in fields:
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 386, in _readable_fields
+    for field in self.fields.values():
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 374, in fields
+    for key, value in self.get_fields().items():
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 1081, in get_fields
+    field_names = self.get_field_names(declared_fields, info)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 1177, in get_field_names
+    assert field_name in fields, (
+AssertionError: The field 'rst_details' was declared on serializer SalesListSerializer, but has not been included in the 'fields' option.
+2025-11-04 02:14:38,618 [ERROR] django.request Internal Server Error: /api/ledger/sales/all/
+Traceback (most recent call last):
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 199, in get
+    return Response(serializer.data, status=status.HTTP_200_OK)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 797, in data
+    ret = super().data
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 715, in to_representation
+    return [
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 716, in <listcomp>
+    self.child.to_representation(item) for item in iterable
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 715, in to_representation
+    return [
+TypeError: 'Order' object is not iterable
+2025-11-04 02:16:35,837 [ERROR] django.request Internal Server Error: /api/ledger/sales/all/
+Traceback (most recent call last):
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 199, in get
+    return Response(serializer.data, status=status.HTTP_200_OK)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 797, in data
+    ret = super().data
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 715, in to_representation
+    return [
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 716, in <listcomp>
+    self.child.to_representation(item) for item in iterable
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 525, in to_representation
+    for field in fields:
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 386, in _readable_fields
+    for field in self.fields.values():
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 375, in fields
+    fields[key] = value
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/utils/serializer_helpers.py", line 165, in __setitem__
+    field.bind(field_name=key, parent=self.serializer)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/fields.py", line 358, in bind
+    assert self.source != field_name, (
+AssertionError: It is redundant to specify `source='number'` on field 'IntegerField' in serializer 'OrderSerializer', because it is the same as the field name. Remove the `source` keyword argument.
+2025-11-04 02:19:45,516 [ERROR] django.request Internal Server Error: /api/ledger/sales/all/
+Traceback (most recent call last):
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 199, in get
+    return Response(serializer.data, status=status.HTTP_200_OK)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 797, in data
+    ret = super().data
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 251, in data
+    self._data = self.to_representation(self.instance)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 715, in to_representation
+    return [
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 716, in <listcomp>
+    self.child.to_representation(item) for item in iterable
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 540, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/serializers.py", line 715, in to_representation
+    return [
+TypeError: 'RST' object is not iterable
+2025-11-04 02:57:08,987 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:09,993 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:12,000 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:14,436 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:15,446 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:27,053 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:28,065 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:30,073 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:34,081 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:53,018 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:54,028 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:57:56,037 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:58:00,044 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:58:02,471 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:58:03,481 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 02:58:05,488 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 06:45:40,033 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 06:52:07,081 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 06:52:08,091 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 06:52:10,095 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 07:11:54,936 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 07:11:55,055 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 07:11:56,065 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 07:17:40,608 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 07:28:35,737 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 07:43:48,509 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 08:02:30,910 [WARNING] django.request Unauthorized: /api/ledger/sales/all/
+2025-11-04 20:03:59,646 [WARNING] django.request Unauthorized: /api/ledger/expenses/
+2025-11-04 20:03:59,721 [ERROR] django.request Internal Server Error: /api/ledger/expenses/
+Traceback (most recent call last):
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 517, in dispatch
+    self.response = self.finalize_response(request, response, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 429, in finalize_response
+    assert isinstance(response, HttpResponseBase), (
+AssertionError: Expected a `Response`, `HttpResponse` or `StreamingHttpResponse` to be returned from the view, but received a `<class 'NoneType'>`
+2025-11-04 20:38:15,997 [WARNING] django.request Unauthorized: /api/ledger/expenses/
+2025-11-04 20:38:16,028 [INFO] ledger.sales Create user_id=1 date=2025-11-04 sales_count=0 expense_type=[]
+2025-11-04 20:38:16,029 [INFO] ledger.sales Submission Report date=2025-11-04 rows_attempted=0 rows_saved=0 rows_failed=0 saved_invoices=[] failed_invoices=[]
+2025-11-04 20:40:12,278 [INFO] ledger.sales Create user_id=1 date=2025-11-04 sales_count=1 expense_type=['store']
+2025-11-04 20:40:12,316 [ERROR] django.request Internal Server Error: /api/ledger/expenses/
+Traceback (most recent call last):
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 259, in post
+    [r["invoice_number"] for r in results],
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 259, in <listcomp>
+    [r["invoice_number"] for r in results],
+KeyError: 'invoice_number'
+2025-11-04 20:41:25,009 [INFO] ledger.sales Create user_id=1 date=2025-11-04 sales_count=1 expense_type=['store']
+2025-11-04 20:41:25,013 [INFO] ledger.sales Submission Report date=2025-11-04 rows_attempted=1 rows_saved=1 rows_failed=0 saved_expenses=['store'] failed_expenses=[]
+2025-11-04 20:42:43,016 [INFO] ledger.sales Create user_id=1 date=2025-11-04 sales_count=1 expense_type=['store']
+2025-11-04 20:42:43,061 [ERROR] django.request Internal Server Error: /api/ledger/expenses/
+Traceback (most recent call last):
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 259, in post
+    [r["invoice_number"] for r in results],
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 259, in <listcomp>
+    [r["invoice_number"] for r in results],
+KeyError: 'invoice_number'
+2025-11-04 20:48:19,001 [INFO] ledger.sales Create user_id=1 date=2025-11-04 sales_count=1 expense_type=['boss']
+2025-11-04 20:48:19,048 [ERROR] django.request Internal Server Error: /api/ledger/expenses/
+Traceback (most recent call last):
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/.venv/lib/python3.9/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 259, in post
+    [r["invoice_number"] for r in results],
+  File "/Users/macbook25/Work/projects/IK-Ops-Ledger/jewelops/backend/api/accounting_ledger/views.py", line 259, in <listcomp>
+    [r["invoice_number"] for r in results],
+KeyError: 'invoice_number'

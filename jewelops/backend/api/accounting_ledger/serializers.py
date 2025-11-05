@@ -155,15 +155,6 @@ class OrderSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-     
-class ExpenseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Expense
-        fields = [
-            'id', 'business_date', 'category', 'expense_type', 'description', 
-            'amount', 'payment_method', 'created_at'
-        ]
-
 
 class SaleItemSerializer(serializers.ModelSerializer):
     # Include item details for read operations
@@ -195,6 +186,12 @@ class SalesListSerializer(serializers.ModelSerializer):
 
     def get_is_order(self, obj):
         return hasattr(obj, "order_details")
+
+
+class ExpenseListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Expense
+        fields = ["id","business_date", "category", "expense_type", "description", "amount", "payment_method"]
 
 
 # ----------- COMPOSE SERIALIZERS -------------   
