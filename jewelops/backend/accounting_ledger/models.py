@@ -230,7 +230,7 @@ class Order(models.Model):
 
 class Expense(models.Model):
     business_date  = models.DateField()
-    created_at     = models.DateTimeField(auto_now_add=True)
+    created_at     = models.DateField(auto_now_add=True)
     category       = models.CharField(max_length=200, choices=ExpenseCategory.choices, default=ExpenseCategory.OTHER)
     expense_type   = models.CharField(max_length=200, null=False, default='store-exp')
     description    = models.TextField(blank=True)
@@ -377,6 +377,7 @@ class SupplierCashbook(models.Model):
     # the outstanding balance is updated with new gold value 
     def __str__(self):
         return f"SupplierPayment {self.cashbook_payment_id} – {self.supplier.name}"
+
 
 # -------------- MELTING GOLD -----------
 class MeltingGoldBook(models.Model):

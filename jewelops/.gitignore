@@ -20,3 +20,6 @@ __pycache__/
 db.sqlite3
 staticfiles/
 media/
+
+#logs
+backend/logs/

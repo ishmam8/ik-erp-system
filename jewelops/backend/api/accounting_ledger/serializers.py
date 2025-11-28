@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db import IntegrityError, transaction
 from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
+from django.forms import model_to_dict
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -10,7 +11,7 @@ from accounting_ledger.models import (
     Order, Expense, PaymentMethod, PaymentKind, ExpenseCategory, ItemStatus, RSTStatus
 )
 from accounting_ledger.utils import parse_item_codes, parse_payment_methods
-from services.sales import create_sales_from_row
+from services.sales_service import create_sales_from_row
 
 # Serializer Check for individual rows in requesta
 class SaleOrderRowSerializer(serializers.Serializer):
@@ -32,6 +33,7 @@ class SaleOrderRowSerializer(serializers.Serializer):
     payment_type = serializers.CharField(required=False, allow_blank=True)
     rst_booking_payment = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, default=Decimal('0'))
     rst_adv = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, default=Decimal('0'))
+    
     order_description = serializers.CharField(required=False, allow_blank=True)
     assigned_to = serializers.CharField(required=False, allow_blank=True)
     is_completed = serializers.BooleanField(required=False, default=False)
@@ -218,19 +220,18 @@ class OrderComposeSerializer(serializers.Serializer):
     
     def create(self, validated_data):
         v_row = validated_data["row"]
-        sale = Sales.objects.create(
-            business_date=v_row.get('business_date'),
-            customer_name=v_row.get('customer_name', ''),
-            sold_by=v_row.get('sold_by', ''),
-            invoice_number=v_row.get('invoice_number'),
-            item_count=v_row.get('item_count', 0),
-            total_sale_price=v_row.get('sale_price')
-        )
+        sale = create_sales_from_row(validated_data["row"], item_status=ItemStatus.SOLD)
+        sale_instance = sale[-1]
+
+        existing_order = Order.objects.filter(sale=sale_instance).first()
+        if existing_order:
+            # Just reuse the sale; process_sales_rows will treat this row as "handled"
+            return sale_instance
         #TODO:
         # sale_payment = SalePayment.objects.create
         print("ASSIGNED TO", v_row.get('assigned_to')) 
         order = Order.objects.create(
-            sale=Sales.objects.get(id=sale.id),
+            sale=sale_instance,
             assigned_to=v_row.get('assigned_to'),
             is_completed=v_row.get('is_completed', False),
             #TODO: delivery date might fail in format
@@ -238,7 +239,7 @@ class OrderComposeSerializer(serializers.Serializer):
             item_description=v_row.get('order_description')
             #TODO: tackle when a order has been completed
         )
-        return sale
+        return sale[-1]
     
 
 class ExpenseComposeSerializer(serializers.Serializer):

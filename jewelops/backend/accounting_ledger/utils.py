@@ -1,4 +1,6 @@
 import re
+import math
+from datetime import datetime
 from typing import List, Tuple, Optional, Union
 from decimal import Decimal, InvalidOperation
 
@@ -85,3 +87,29 @@ def parse_payment_methods(value: Optional[Union[str, List[str]]]) -> List[str]:
         return []
     # split on comma, semicolon or pipe and trim whitespace
     return [part.strip() for part in re.split(r'[,\|;]+', s) if part.strip()]
+
+
+def safe_int(value):
+    """
+    Placeholder: safely parse invoice_number (may be '', None, 'Order', etc.).
+    """
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s or not s.isdigit():
+        return None
+    return int(s)
+
+def parse_order_date(value):
+    """
+    Placeholder: parse 'Date to Deliver' / 'Ready for Handover'.
+    Your CSV seems to use DD/MM/YYYY, e.g. '03/06/2025'.
+    Adjust this if format differs or allow empty.
+    """
+    if not value or isinstance(value, float) and math.isnan(value):
+        return None
+    s = str(value).strip()
+    if not s:
+        return None
+    # tweak format to your actual sheet
+    return datetime.strptime(s, "%d/%m/%Y").date()
