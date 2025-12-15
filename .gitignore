@@ -37,8 +37,13 @@ coverage/
 .env
 .env.local
 .env*.local
+.venvs/
 
 # System
 .DS_Store
 .idea/
-.vscode/
+.vscode/backend/etl/google_credentials.json
+
+# CSVs and logs
+*.csv
+jewelops/ETL_outputs/
