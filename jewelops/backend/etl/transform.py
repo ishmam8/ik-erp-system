@@ -1,8 +1,13 @@
+import os
 from django.conf import settings
 from typing import Dict, List, Sequence, Tuple
 import numpy as np
 import pandas as pd
 from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env.local")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]  # jewelops/
 ETL_OUTPUT_DIR = PROJECT_ROOT / "ETL_outputs"
@@ -207,16 +212,52 @@ def clean_dataframes(df: pd.DataFrame) -> pd.DataFrame:
     df = df.replace("", np.nan)
     # Drop rows where *all* columns are NaN/empty
     df = df.dropna(how="all")
-
+    
     # convert date column to datetime
     if "Date" in df.columns:
         df["Date"] = pd.to_datetime(df["Date"].astype(str).str.strip(), dayfirst=True, format="%d/%m/%Y", errors="coerce")
+    # import pdb; pdb.set_trace()
+    print("after cleaning 1 ",df)
+    return df
+
+def clean_dataframes(df: pd.DataFrame) -> pd.DataFrame:
+    # Strip text cells
+    df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
+    df = df.replace("", np.nan)
+    df = df.dropna(how="all")
+
+    # Normalise column names
+    df.columns = df.columns.astype(str).str.strip()
+
+    # Find any date-like columns: "Date", "DATE", "Date:", etc.
+    date_cols = [c for c in df.columns if "date" in c.lower()]
+
+    for col in date_cols:
+        raw = df[col].astype(str).str.strip()
+
+        # TEMP: debug September or weird rows
+        print(f"\n[DEBUG] Raw values in '{col}' (first 15):")
+        print(raw.head(15).to_list())
+
+
+        # Let pandas parse; we can re-tighten format once we trust the data
+        parsed = pd.to_datetime(raw, errors="coerce", format="%d/%m/%Y")
+        df[col] = parsed
+
+        # TEMP: show which ones failed (this will reveal hidden characters)
+        # bad = raw[parsed.isna() & raw.notna()]
+        # if not bad.empty:
+            # print(f"[DEBUG] Unparsed values in '{col}' (unique):")
+            # print(bad.unique().tolist())
+
+    print("after cleaning 1", df)
     return df
 
 def process_dataframes():
     raw_rows = fetch_rows_from_sheet(interactive=True)
-
+    print(raw_rows[0:3])  # preview header + first 2 rows
     expenses_rows, sales_rows = SplitSalesAndExpenses.split_expenses_and_sales(raw_rows)
+    print("SALES ROWS SAMPLE:", sales_rows[0])
 
     # for debugging / DataFrames
     header = raw_rows[0]
@@ -236,14 +277,27 @@ def process_dataframes():
     print("len(sales_columns)    =", len(sales_columns))
 
     expenses_df = pd.DataFrame(expenses_rows[1:], columns=expenses_rows[0])
+   
     sales_df = pd.DataFrame(sales_rows[1:], columns=sales_rows[0])
+    cols = list(sales_df.columns)
+    cols[0] = "Date"
+    cols = ["Sale Price (BDT)" if c == "Total Sale Price" else c for c in cols]
+    cols = ["Gold Weight/Value" if c == "Gold Weight-Value" else c for c in cols]
+    sales_df.columns = cols
 
+    print("before cleaning",sales_df)
+    
+
+    # print("before cleaning",sshortcatales_df)
     expenses_df = clean_dataframes(expenses_df)
     sales_df = clean_dataframes(sales_df)
+    # print("after cleaning 2",sales_df)
 
     #save to local csv files
     # save_df_to_csv(expenses_df, "expenses")
-    save_df_to_csv(sales_df, "sales")
+    # save_df_to_csv(sales_df, f"sales_{os.getenv("ETL_WORKSHEET_NAME").lower()}")
+    save_df_to_csv(sales_df, f"sales_{os.getenv('ETL_WORKSHEET_NAME').lower()}")
+
 
     # print("=== EXPENSES HEAD ===")
     # print(expenses_df.head(30))

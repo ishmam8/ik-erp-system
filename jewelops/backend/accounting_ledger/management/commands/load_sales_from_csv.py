@@ -1,6 +1,7 @@
 # ledger/management/commands/load_sales_from_csv.py
 import json
 import logging
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -23,7 +24,7 @@ class Command(BaseCommand):
             "--csv-path",
             type=str,
             required=False,
-            help="Path to the sales.csv file (default: ./ETL_outputs/sales.csv)",
+            help="Path to the sales_<>.csv file (default: ./ETL_outputs/sales_<>.csv)",
         )
         parser.add_argument(
             "--dry-run",
@@ -40,7 +41,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # 🔁 CSV PATH PLACEHOLDER: change default if your folder name is different
         csv_path_str = options.get("csv_path") or str(
-            Path(__file__).resolve().parent.parent.parent.parent.parent / "ETL_outputs" / "sales.csv"
+            Path(__file__).resolve().parent.parent.parent.parent.parent / "ETL_outputs" / f"sales_{os.getenv('ETL_WORKSHEET_NAME').lower()}.csv"
         )
         csv_path = Path(csv_path_str)
 

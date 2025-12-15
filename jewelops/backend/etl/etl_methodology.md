@@ -5,21 +5,16 @@
 # First Step 
 
 # understand the tables and their columns
-
 ## expenses, sales & orders
-
 # for Expenses table: 
 # Starting and including from Epenses header column index, include 4
 # - ENSURE THE ROWS FOLLOW THE SAME DATE UPTIL TOTAL-1
-
 # for Sales table:
 # Starting and including from Sales header column index, include 15
 # - ENSURE THE ROWS FOLLOW THE SAME DATE UPTIL TOTAL-1
-
 # for Orders table:
 # Starting and including from Orders header column index, include 11
 # - Include the same date rows UPTIL TOTAL-1
-
 ## So we are segmenting the data based on starting of date and ending at TOTAL-1 for each table
 ## seperate the table into two expenses and sales
 
@@ -36,7 +31,24 @@
 #       if empty what to do
 #       theres same how to reconcile them and populate empty cells
 # DONE!!
-# run management command for sales: 
+# run management command for sales:  
 ##  python manage.py load_sales_from_csv --dry-run --errors-json=etl_errors_after_fix.json
+## python manage.py load_sales_from_csv --errors-json=etl_errors_real.json
 
-## python manage.py load_sales_from_csv \                                                --errors-json=etl_errors_real.json
+
+
+
+# Third Step - Artisans
+
+# create the artisans table 
+# once the artisans tables are created - extract the sheets and convert to csv
+# break the csvs into each artisans table
+# change the date formats and do some cleaning on the dataframes for gold history
+# clean for transactions
+
+# for each artisans populate the artisan-order table
+
+# if there is a payment made, populate the artisan-payment table and link with orders
+# once done target the artisan_items_deliver tables
+# ....
+

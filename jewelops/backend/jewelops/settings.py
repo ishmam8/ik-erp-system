@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -235,6 +236,7 @@ LOGGING = {
     },
 }
 
+load_dotenv(BASE_DIR / "etl" / ".env.local")
 
 # Future: ASGI configuration (for live dashboards)
 # ASGI_APPLICATION = 'jewelops.asgi.application'

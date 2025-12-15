@@ -1,4 +1,6 @@
 from decimal import Decimal
+from datetime import datetime
+from datetime import datetime
 from django.db import IntegrityError, transaction
 from django.db.models import Sum, Q
 from django.db.models.functions import Coalesce
@@ -10,7 +12,7 @@ from accounting_ledger.models import (
     Item, Sales, SaleItem, SalePayment, GoldPayment, RST, RSTItem, RSTVoided, 
     Order, Expense, PaymentMethod, PaymentKind, ExpenseCategory, ItemStatus, RSTStatus
 )
-from accounting_ledger.utils import parse_item_codes, parse_payment_methods
+from accounting_ledger.utils import parse_item_codes, parse_payment_methods, parse_order_date
 from services.sales_service import create_sales_from_row
 
 # Serializer Check for individual rows in requesta
@@ -230,12 +232,24 @@ class OrderComposeSerializer(serializers.Serializer):
         #TODO:
         # sale_payment = SalePayment.objects.create
         print("ASSIGNED TO", v_row.get('assigned_to')) 
+        raw_delivery_date = v_row.get('delivery_date')
+        delivery_date = raw_delivery_date
+        if isinstance(raw_delivery_date, str):
+            for fmt in ("%Y-%m-%d", "%d/%m/%Y"):
+                try:
+                    delivery_date = datetime.strptime(raw_delivery_date, fmt).date()
+                    break
+                except ValueError:
+                    continue
+            else:
+                delivery_date = None
+        elif isinstance(raw_delivery_date, datetime):
+            delivery_date = raw_delivery_date.date()
         order = Order.objects.create(
             sale=sale_instance,
             assigned_to=v_row.get('assigned_to'),
             is_completed=v_row.get('is_completed', False),
-            #TODO: delivery date might fail in format
-            delivery_date=v_row.get('delivery_date'),
+            delivery_date=delivery_date,
             item_description=v_row.get('order_description')
             #TODO: tackle when a order has been completed
         )

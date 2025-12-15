@@ -9,6 +9,7 @@ node_modules/
 .env/
 base-contract/artifacts/
 base-contract/cache/
+jewelops/backend/etl/config/*.json
 
 
 # Python
@@ -47,3 +48,4 @@ coverage/
 # CSVs and logs
 *.csv
 jewelops/ETL_outputs/
+jewelops/backend/logs/

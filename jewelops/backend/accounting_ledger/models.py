@@ -266,8 +266,8 @@ class ArtisanOrders(models.Model):
     This table holds information about artisans' buying gold and delivering jewellery orders
     '''
     class ArtisanTransactionType(models.TextChoices):
-        RAW_G = "RAW_G", "receive raw gold"
-        DELIVER_J = "DELIVER_J", "deliver jewellery"
+        RAW_G = "RAW_G", "receive raw gold, order_kind=RECEIVE"
+        DELIVER_J = "DELIVER_J", "deliver jewellery, order_kind=PROVIDE"
 
     order_id = models.AutoField(primary_key=True)
     artisan = models.ForeignKey(Artisan, related_name='orders', on_delete=models.DO_NOTHING)

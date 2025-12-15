@@ -100,7 +100,7 @@ def sales_df() -> pd.DataFrame:
         .resolve()
         .parent.parent.parent.parent
         / "ETL_outputs"
-        / "sales.csv"
+        / "sales_october.csv"
     )
     df = pd.read_csv(csv_path, keep_default_na=False, na_values=[])
 
@@ -203,7 +203,7 @@ def test_sales_load_processing(sales_df):
     _print_db_snapshot()
 
 
-
+@pytest.mark.django_db
 def test_expenses_load_processing(expenses_df):
     # For each business date, run the ETL separately
     for business_date, day_df in expenses_df.groupby("Date"):

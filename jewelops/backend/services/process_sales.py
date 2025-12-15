@@ -74,7 +74,7 @@ def process_sales_rows(rows, order_rows, business_date, user):
             tag = (row.get("rst_order") or "")
             # 🔑 Only treat as ORDER if we actually have order meta for this invoice
             if tag == "ORDER" and matching_order is None:
-                # This is likely a later "Advance"/payment row, not the order header
+                # This is likely a later "Advance" payment row, where customer is paying advance money, not the order header
                 print(f"DEBUG: invoice {inv_num} tagged ORDER but no matching_order – treating as SALE")
                 tag = ""   # force it to go through SalesComposeSerializer
             if tag == "RST":
