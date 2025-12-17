@@ -41,7 +41,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # 🔁 CSV PATH PLACEHOLDER: change default if your folder name is different
         csv_path_str = options.get("csv_path") or str(
-            Path(__file__).resolve().parent.parent.parent.parent.parent / "ETL_outputs" / f"sales_{os.getenv('ETL_WORKSHEET_NAME').lower()}.csv"
+            Path(__file__).resolve().parent.parent.parent.parent.parent / "ETL_outputs/sales" / f"sales_{os.getenv('ETL_WORKSHEET_NAME').lower()}.csv"
         )
         csv_path = Path(csv_path_str)
 

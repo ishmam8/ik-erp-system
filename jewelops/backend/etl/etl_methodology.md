@@ -45,10 +45,11 @@
 # break the csvs into each artisans table
 # change the date formats and do some cleaning on the dataframes for gold history
 # clean for transactions
-
 # for each artisans populate the artisan-order table
+# check if the attr can be null in artisan-order table
 
 # if there is a payment made, populate the artisan-payment table and link with orders
+
 # once done target the artisan_items_deliver tables
 # ....
 

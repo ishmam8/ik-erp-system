@@ -73,15 +73,16 @@ def iter_sales_batches(sales_df: pd.DataFrame) -> Iterable[Tuple[Any, List[Dict]
             inv_num = safe_int(raw_inv)
 
             sale_price_raw = str(row.get("Sale Price (BDT)") or "").strip().upper()
+            rst_adv_raw = str(row.get("RST Value") or "").strip().upper()
             customer_name_raw = str(row.get("Customer Name") or "").strip()
             customer_name_upper = customer_name_raw.upper()
             payment_method_raw = str(row.get("Payment Method") or "").strip().upper()
             item_desc_raw = str(row.get("Item Description") or "").strip().lower()
 
             tag = None
-            if sale_price_raw == "RST" or "RST" in payment_method_raw:
+            if sale_price_raw == "RST" or rst_adv_raw or "RST" in payment_method_raw:
                 tag = "RST"
-            elif sale_price_raw == "ORDER" or customer_name_upper == "ORDER":
+            if sale_price_raw == "ORDER" or customer_name_upper == "ORDER":
                 # Don't treat pure 'Advance' rows as ORDER
                 if item_desc_raw != "advance":
                     tag = "ORDER"

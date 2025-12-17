@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 
 ENUMERATE_PAYMENT_METHODS = [
     ('CASH', 'Cash'),
@@ -238,85 +239,6 @@ class Expense(models.Model):
     payment_method = models.CharField(max_length=100, choices=PaymentMethod.choices)
 
 
-#------ ARTISANS --------
-
-class Artisan(models.Model):
-    name = models.CharField(max_length=200, null=False)
-    pending_jewellery_weight = models.DecimalField(
-        max_digits=10, decimal_places=3, default=0, help_text='jewellery outstanding from artisan') 
-    cash_outstanding = models.DecimalField(null=False, max_digits=12, decimal_places=2, default=0)
-    last_audit_date = models.DateField(null=False)
-    last_transaction_date = models.DateField(null=False)
-
-    def __str__(self):
-        return self.name
-
-    @property
-    def open_orders(self):
-        """Convenience: all artisan orders not yet settled."""
-        return self.artisan_orders.filter(is_settled=False)
-
-    #have a property function which updates the cash_outstanding whenever there is a payment done
-    # or order received 
-    #have a property function which updates the pending_jewellery whenever there is a jewellery update
-    
-
-class ArtisanOrders(models.Model):
-    '''
-    This table holds information about artisans' buying gold and delivering jewellery orders
-    '''
-    class ArtisanTransactionType(models.TextChoices):
-        RAW_G = "RAW_G", "receive raw gold, order_kind=RECEIVE"
-        DELIVER_J = "DELIVER_J", "deliver jewellery, order_kind=PROVIDE"
-
-    order_id = models.AutoField(primary_key=True)
-    artisan = models.ForeignKey(Artisan, related_name='orders', on_delete=models.DO_NOTHING)
-    date = models.DateField()
-    total_weight = models.DecimalField(max_digits=10,decimal_places=2)
-    
-    transaction_type = models.CharField(max_length=20,choices=ArtisanTransactionType.choices)
-    purchase_rate_per_bhori = models.CharField(max_length=20,blank=True,
-        null=True,
-        help_text="Set only when order_kind = RECEIVE",)
-    total_gold_value = models.CharField()
-    
-    receive_source = models.CharField(
-        max_length=20,
-        choices=AcidGoldSource.choices,
-        blank=True,
-        null=True,
-        help_text="Set only when order_kind = RECEIVE",
-    )
-    item_category = models.CharField(max_length=50)
-    note = models.TextField()
-    # delivery_date = models.DateField()
-    #this value will be dealing with artisan orders coming from sales
-    #invoice_num = models.CharField()
-
-    #when doing cleaning, 
-    # we must make sure that if the order kind is raw gold purchase
-    # the outstanding balance is updated with new gold value 
-    #
-
-
-class ArtisanCashbook(models.Model):
-    cashbook_payment_id = models.AutoField(primary_key=True)
-    artisan = models.ForeignKey(Artisan, related_name='cashbook', on_delete=models.DO_NOTHING)
-    payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    payment_date = models.DateTimeField(auto_now_add=True)
-    artisan_order = models.ForeignKey(
-        ArtisanOrders,
-        null=True,
-        blank=True,
-        on_delete=models.PROTECT,  # or DO_NOTHING, but PROTECT is safer
-        related_name="cash_payments",
-    )
-
-    #Clean:
-    # we must make sure that if there is a payment received
-    # the outstanding balance is updated with new gold value 
-
-
 # -------------- SUPPLIERS -----------------
 
 
@@ -347,7 +269,7 @@ class SupplierOrders(models.Model):
     transaction_type = models.CharField(max_length=20,choices=SupplierTransactionType.choices)
     purchase_rate_per_bhori = models.CharField(max_length=20,blank=True,
         null=True,
-        help_text="Set only when order_kind = RECEIVE",)
+        help_text="Set only when transaction_type=DELIVER",)
     batch_id = models.CharField()
     note = models.TextField(blank=True)
 
@@ -439,3 +361,98 @@ class StoreItemTransfer(models.Model):
 
     def __str__(self):
         return f"Transfer {self.id} – {self.item.code}"
+    
+
+
+
+
+
+
+#------ ARTISANS --------
+
+class Artisan(models.Model):
+    name = models.CharField(max_length=200, null=False)
+    jewellery_balance_g = models.DecimalField(
+        max_digits=10, 
+        decimal_places=3, 
+        default=0, 
+        help_text='Running gold balance in grams. Positive: artisan owes jewellery. Negative: we owe gold.') 
+    cash_outstanding = models.DecimalField(null=False, max_digits=12, decimal_places=2, default=0)
+    last_audit_date = models.DateField(null=False)
+    last_transaction_date = models.DateField(null=False)
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def pending_jewellery_g(self) -> Decimal:
+        return max(self.jewellery_balance_g, Decimal("0"))
+
+    @property
+    def gold_owed_to_artisan_g(self) -> Decimal:
+        return max(-self.jewellery_balance_g, Decimal("0"))
+
+    #have a property function which updates the cash_outstanding whenever there is a payment done
+    # or order received 
+    #have a property function which updates the pending_jewellery whenever there is a jewellery update
+    
+
+class ArtisanOrders(models.Model):
+    '''
+    This table holds information about artisans' buying gold and delivering jewellery orders
+    '''
+    class ArtisanTransactionType(models.TextChoices):
+        RAW_G = "RAW_G", "receive raw gold, order_kind=RECEIVE"
+        DELIVER_J = "DELIVER_J", "deliver jewellery, order_kind=PROVIDE"
+
+    order_id = models.AutoField(primary_key=True)
+    artisan = models.ForeignKey(Artisan, related_name='orders', on_delete=models.PROTECT)
+    date = models.DateField()
+    total_weight = models.DecimalField(max_digits=10,decimal_places=2)
+    
+    transaction_type = models.CharField(
+        max_length=20,choices=ArtisanTransactionType.choices)
+    purchase_rate_per_bhori = models.CharField(max_length=20,blank=True,
+        null=True,
+        help_text="Set only when order_kind = RECEIVE",)
+    total_gold_value = models.CharField(
+        null=True,
+        help_text="Total value of gold received, transaction_type = RECEIVE"
+    )
+    
+    receive_source = models.CharField(
+        max_length=20,
+        choices=AcidGoldSource.choices,
+        blank=True,
+        null=True,
+        help_text="Set only when transaction_type = RECEIVE",
+    )
+
+    item_category = models.CharField(null=True, blank=True, max_length=50)
+    note = models.TextField(null=True)
+    gold_from_melting_recovery = models.ForeignKey(RecoveryGold,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="artisan_orders",
+    )
+    invoice_number = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+
+
+class ArtisanCashbook(models.Model):
+    cashbook_payment_id = models.AutoField(primary_key=True)
+    artisan = models.ForeignKey(Artisan, related_name='cashbook', on_delete=models.PROTECT)
+    payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    payment_date = models.DateTimeField()
+    artisan_order = models.ForeignKey(
+        ArtisanOrders,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,  # or DO_NOTHING, but PROTECT is safer
+        related_name="cash_payments",
+    )
+
+    #Clean:
+    # we must make sure that if there is a payment received
+    # the outstanding balance is updated with new gold value 
+

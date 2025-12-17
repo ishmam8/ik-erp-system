@@ -22,15 +22,16 @@ def create_sales_from_row(row, *, item_status):
         sale.save()
     
     
-        print("row rst order",row.get('rst_order'))
+        print("row rst advance",row.get('rst_adv'), type(row.get('rst_adv')))
         if row.get("rst_order") == 'RST':
             rst = RST.objects.create(
-                    sale=Sales.objects.get(id=sale.id),
+                    sale=sale,
                     #TODO:
                     #rst db needs to be fixed, also do we want rstItem table?
                     rst_adv=row.get('rst_adv') 
             )
             rst.save()
+            print(f"After save - rst_adv value: {rst.rst_adv}, type: {type(rst.rst_adv)}")
 
     # Create items
         item_codes, item_names = parse_item_codes(row.get('item_code'), row.get('item'))
@@ -51,8 +52,8 @@ def create_sales_from_row(row, *, item_status):
                 item.save(update_fields=['status'])
         
             sale_item = SaleItem.objects.create(
-                sale=Sales.objects.get(id=sale.id),
-                item=Item.objects.get(code=code),
+                sale=sale,
+                item=item,
                 purity_price=row.get('kdm_vori'),
                 description=name
             )
@@ -60,8 +61,8 @@ def create_sales_from_row(row, *, item_status):
 
             if row.get("rst_order") == 'RST':
                 rst_item = RSTItem.objects.create(
-                    rst=RST.objects.get(id=rst.id),
-                    item=Item.objects.get(code=code),
+                    rst=rst,
+                    item=item,
                 )
                 rst_item.save()
 

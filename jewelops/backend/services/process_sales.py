@@ -37,8 +37,9 @@ def process_sales_rows(rows, order_rows, business_date, user):
             delivery_date = None if not order_delivery_date else order_delivery_date
             completed_at = None if not order_completed_date else order_completed_date
 
-            print("MATCHING ORDER FOR INV", inv_num, row.get('item'),"IS", matching_order)
-
+            # print("MATCHING ORDER FOR INV", inv_num, row.get('item'),"IS", matching_order)
+            print("RST ORDER:", row.get("rst_advanced"), " for INV:", inv_num)
+            print("RST PARSED", to_decimal(row.get('rst_advanced'), '0'))
             cleaned_row = {
                 'business_date': business_date,
                 'invoice_number': inv_num,
@@ -61,6 +62,7 @@ def process_sales_rows(rows, order_rows, business_date, user):
 
                 'rst_order': row.get('rst_order'), # is it rst/order/sale
                 'rst_booking_payment': to_decimal(row.get('rst_payment'), '0'), # Only for RST bookings, final payment estimated #TODO:
+                
                 'rst_adv': to_decimal(row.get('rst_advanced'), '0'),       # Only for RST bookings, advance payment made
                 'rst_status': row.get('rst_status') or '', #TODO: not using it for now
 

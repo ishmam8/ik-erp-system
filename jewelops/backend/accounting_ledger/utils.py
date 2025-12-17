@@ -4,11 +4,31 @@ from datetime import datetime
 from typing import List, Tuple, Optional, Union
 from decimal import Decimal, InvalidOperation
 
-def to_decimal(v, default='0'):
-    try:
+_num_re = re.compile(r"-?\d+(?:\.\d+)?")
+
+def to_decimal(v, default="0"):
+    if v is None:
+        return Decimal(default)
+
+    # Already numeric
+    if isinstance(v, Decimal):
+        return v
+    if isinstance(v, int):
+        return Decimal(v)
+    if isinstance(v, float):
+        # avoid float artifacts as much as possible
         return Decimal(str(v))
+
+    s = str(v).strip().replace(",", "")
+    m = _num_re.search(s)
+    if not m:
+        return Decimal(default)
+
+    try:
+        return Decimal(m.group(0))
     except (InvalidOperation, TypeError):
         return Decimal(default)
+
 
 def parse_item_codes(code_value: Optional[Union[str, int, list, tuple]],
                      name_value: Optional[Union[str, list, tuple]] = None
