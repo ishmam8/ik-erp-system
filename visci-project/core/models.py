@@ -1,6 +1,6 @@
 import django.utils.timezone as timezone
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 CURRENCY_CHOICES = (
     ('USD', 'USD'),
@@ -67,7 +67,7 @@ The fiat_balance represents the amount of fiat currency in the system.
 TODO: Need to store USDC or USDT in the database.
 '''
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     #TODO:
     # How will we store the fiat balance in pratice?
     fiat_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -94,7 +94,7 @@ class Transaction(models.Model):
     )
     # Who initiated the action?
     actor = models.ForeignKey(
-        User, 
+        settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL,  # Keep transactions if user leaves
         null=True,
         related_name='actions_initiated'
@@ -102,7 +102,7 @@ class Transaction(models.Model):
     
     # Who was affected? (e.g., receiver of a gift)
     target_user = models.ForeignKey(
-        User, 
+        settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
@@ -123,7 +123,7 @@ class Transaction(models.Model):
 '''More like a marketplace system where users can send VGToken to each other.
 '''
 class PendingTransaction(models.Model):
-    actor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_pending_transactions')
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_pending_transactions')
     target_email = models.EmailField()
     vgt_amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     created_at = models.DateTimeField(default=timezone.now)

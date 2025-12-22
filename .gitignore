@@ -37,6 +37,7 @@ coverage/
 .env
 .env.local
 .env*.local
+venv
 
 # System
 .DS_Store

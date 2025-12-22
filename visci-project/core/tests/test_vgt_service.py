@@ -1,7 +1,7 @@
 import pytest
 from core.services import vgt_service
 from core.models import Vault, Transaction, UserProfile, PendingTransaction
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db import IntegrityError
 
 def test_dummy():
@@ -9,7 +9,7 @@ def test_dummy():
 
 @pytest.fixture
 def user():
-    return User.objects.create_user(username='testuser', password='testpassword', email='test@example.com')
+    return settings.AUTH_USER_MODEL.objects.create_user(username='testuser', password='testpassword', email='test@example.com')
 
 @pytest.fixture
 def user_profile(user):
@@ -116,7 +116,7 @@ def test_user_buy_vgt_insufficient_vault_balance(user, user_profile, vault):
 
 @pytest.mark.django_db
 def test_user_send_vgt(user, user_profile):
-    target_user = User.objects.create_user(username='targetuser', password='testpassword', email='target@example.com')
+    target_user = settings.AUTH_USER_MODEL.objects.create_user(username='targetuser', password='testpassword', email='target@example.com')
     target_profile = UserProfile.objects.create(user=target_user)
     user_profile.vgt_balance = 50.00
     user_profile.save()
